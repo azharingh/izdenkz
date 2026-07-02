@@ -80,7 +80,7 @@ export default function ContactPage() {
             <div className="rounded-3xl bg-slate-50 border border-slate-200 p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Офиске хабарласу</h2>
               <p className="text-slate-600 mb-3">Email: <a href="mailto:info@izden.kz" className="text-amber-500">izdenkz@gmail.com</a></p>
-              <p className="text-slate-600">Орналасқан жері: Қазақстан</p>
+              <p className="text-slate-600">Орналасқан жері: Астана,Қазақстан</p>
             </div>
           </div>
         </div>
