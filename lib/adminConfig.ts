@@ -3,7 +3,7 @@ export const ADMIN_REVIEWER_EMAILS = [
   // No other user should be able to approve or decline articles.
   "azharittooow365@gmail.com",
   "bakdanazenysbek@gmail.com",
-  "azarkusmanova@gmail.com",
+  "izdenkz@gmail.com",
 ] as const
 
 export const REQUIRED_ADMIN_APPROVALS = ADMIN_REVIEWER_EMAILS.length

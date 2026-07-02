@@ -2,6 +2,7 @@ export const ARTICLE_CATEGORIES = {
   lessons: "Өмір сабақтары",
   facts: "Қызық фактілер",
   news: "Жаңалықтар",
+  community: "Қоғам",
 } as const
 
 export type ArticleCategory = keyof typeof ARTICLE_CATEGORIES

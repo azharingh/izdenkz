@@ -24,8 +24,11 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-2xl">
             <h1 className="font-heading text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
-              Білім іздеу — <span className="text-amber-400">болашаққа</span> жол
+              Оқып тоқығаның көп болса,<span className="text-amber-400">жеңбейтін жауың жоқ</span>
             </h1>
+            <h2 className="text-slate-200 text-lg md:text-xl mb-8 leading-relaxed">
+              Бауыржан Момышұлы
+            </h2>
             <p className="text-slate-300 text-lg md:text-xl mb-8 leading-relaxed">
               Izden — қазақ тіліндегі тәуелсіз журналистика платформасы.
             </p>
@@ -106,28 +109,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Feedback */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-heading text-3xl font-bold text-slate-900 mb-10 text-center">Пайдаланушылар пікірі</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { text: "Қазақ тілінде сапалы мақалалар табу қиын еді. Izden осы мәселені шешті!", author: "Айгерім Т.", stars: 5 },
-              { text: "Мен өз мақалаларымды жариялап, кері байланыс алдым. Тамаша платформа!", author: "Бекзат М.", stars: 5 },
-              { text: "Жас авторларға мүмкіндік беретін тамаша платформа. Мақалалар сапалы әрі тексерілген.", author: "Дана К.", stars: 4 },
-            ].map(review => (
-              <div key={review.author} className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(review.stars)].map((_, i) => <span key={i} className="text-amber-500">★</span>)}
-                  {[...Array(5 - review.stars)].map((_, i) => <span key={i} className="text-slate-300">★</span>)}
-                </div>
-                <p className="text-slate-600 mb-4">"{review.text}"</p>
-                <p className="font-semibold text-slate-900">— {review.author}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-slate-900 border-t border-slate-800 py-12">
@@ -139,12 +120,7 @@ export default async function HomePage() {
               </div>
               <span className="text-white font-heading font-bold text-lg">Izden</span>
             </div>
-            <p className="text-slate-500 text-sm">© 2024 Izden. Барлық құқықтар қорғалған.</p>
-            <div className="flex gap-4 text-slate-400">
-              <span>Instagram</span>
-              <span>Twitter</span>
-              <span>Email</span>
-            </div>
+            <p className="text-slate-500 text-sm">© 2026 Izden. Барлық құқықтар қорғалған.</p>
           </div>
         </div>
       </footer>
