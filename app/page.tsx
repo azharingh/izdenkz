@@ -24,7 +24,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-2xl">
             <h1 className="font-heading text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
-              "Оқып тоқығаның көп болса,<span className="text-amber-400">жеңбейтін жауың жоқ"</span>
+              "Оқып тоқығаның көп болса,<span className="text-amber-400"> жеңбейтін жауың жоқ"</span>
             </h1>
             <h2 className="text-slate-200 text-lg md:text-xl mb-8 leading-relaxed">
               Бауыржан Момышұлы
