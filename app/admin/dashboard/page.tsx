@@ -25,27 +25,33 @@ export default function AdminDashboardPage() {
   }, [])
 
   async function loadStats(adminId: string) {
-    setLoading(true)
-    const { data, error } = await supabase
-    .from("article_approvals")
-    .select("id,status,article_id,articles(id,title,overview,created_at,category,author:users!author_id(name))")
-    .eq("admin_id", adminId)
-    .order("created_at", { ascending: false })
-
+  setLoading(true)
+  try {
+    const res = await fetch(`/api/admin/pending?adminId=${adminId}`)
+    const json = await res.json()
     setLoading(false)
-    if (error || !data) {
-      console.error("loadStats error:", error)
+
+    if (!res.ok) {
+      console.error("loadStats error:", json.error)
       setPendingCount(0)
       setPendingItems([])
       setTotalAssigned(0)
       return
     }
 
+    const data = json.data || []
     setTotalAssigned(data.length)
-    const pending = data.filter(item => item.status === REVIEW_STATUSES.CHECKING)
+    const pending = data.filter((item: any) => item.status === REVIEW_STATUSES.CHECKING)
     setPendingCount(pending.length)
     setPendingItems(pending)
+  } catch (err) {
+    console.error("loadStats error:", err)
+    setLoading(false)
+    setPendingCount(0)
+    setPendingItems([])
+    setTotalAssigned(0)
   }
+}
 
   async function handleDecision(articleId: string, decision: string) {
     if (!user) return

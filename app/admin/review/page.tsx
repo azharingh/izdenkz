@@ -22,22 +22,26 @@ export default function AdminReviewPage() {
   }, [])
 
   async function loadPending(adminId: string) {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from("article_approvals")
-      .select("*, articles(*, author:users!author_id(name))")
-      .eq("admin_id", adminId)
-      .eq("status", REVIEW_STATUSES.CHECKING)
-      .order("created_at", { ascending: false })
-
+  setLoading(true)
+  try {
+    const res = await fetch(`/api/admin/pending?adminId=${adminId}`)
+    const json = await res.json()
     setLoading(false)
-    if (error) {
+
+    if (!res.ok) {
+      console.error("loadPending error:", json.error)
       setMessage({ type: "error", text: "Тексеру тізімін жүктеу мүмкін болмады." })
       return
     }
 
-    setPending(data || [])
+    const data = (json.data || []).filter((item: any) => item.status === REVIEW_STATUSES.CHECKING)
+    setPending(data)
+  } catch (err) {
+    console.error("loadPending error:", err)
+    setLoading(false)
+    setMessage({ type: "error", text: "Тексеру тізімін жүктеу мүмкін болмады." })
   }
+}
 
   async function handleDecision(articleId: string, decision: string) {
     if (!user) return
