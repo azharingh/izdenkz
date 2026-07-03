@@ -8,18 +8,34 @@ export default function ContactPage() {
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name || !email || !message) {
       setStatus("error")
       return
     }
 
-    setStatus("success")
-    setName("")
-    setEmail("")
-    setMessage("")
+    setLoading(true)
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      })
+
+      if (!res.ok) throw new Error("Failed")
+
+      setStatus("success")
+      setName("")
+      setEmail("")
+      setMessage("")
+    } catch {
+      setStatus("error")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -65,21 +81,22 @@ export default function ContactPage() {
               </div>
               <button
                 type="submit"
-                className="bg-amber-500 hover:bg-amber-600 text-slate-900 px-6 py-3 rounded-2xl font-semibold transition"
+                disabled={loading}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-900 px-6 py-3 rounded-2xl font-semibold transition disabled:opacity-50"
               >
-                Жіберу
+                {loading ? "Жіберілуде..." : "Жіберу"}
               </button>
               {status === "success" && (
                 <p className="text-emerald-700 text-sm">Сіздің хабарламаңыз қабылданды. Біз жақын арада жауап береміз.</p>
               )}
               {status === "error" && (
-                <p className="text-rose-700 text-sm">Барлық өрістерді толтырыңыз.</p>
+                <p className="text-rose-700 text-sm">Барлық өрістерді толтырыңыз немесе қайталап көріңіз.</p>
               )}
             </form>
 
             <div className="rounded-3xl bg-slate-50 border border-slate-200 p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Офиске хабарласу</h2>
-              <p className="text-slate-600 mb-3">Email: <a href="mailto:info@izden.kz" className="text-amber-500">izdenkz@gmail.com</a></p>
+              <p className="text-slate-600 mb-3">Email: <a href="mailto:izdenkz@gmail.com" className="text-amber-500">izdenkz@gmail.com</a></p>
               <p className="text-slate-600">Орналасқан жері: Астана,Қазақстан</p>
             </div>
           </div>
