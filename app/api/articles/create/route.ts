@@ -60,9 +60,10 @@ export async function POST(req: NextRequest) {
     .insert(approvals)
 
   if (approvalError) {
-    await supabaseAdmin.from("articles").delete().eq("id", article.id)
-    return NextResponse.json({ error: "Мақаланың тексеруі орнатылмады." }, { status: 500 })
-  }
+  console.error("Approval insert error:", approvalError)
+  await supabaseAdmin.from("articles").delete().eq("id", article.id)
+  return NextResponse.json({ error: approvalError.message }, { status: 500 })
+}
 
   return NextResponse.json({ article })
 }
