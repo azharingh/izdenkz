@@ -27,13 +27,14 @@ export default function AdminDashboardPage() {
   async function loadStats(adminId: string) {
     setLoading(true)
     const { data, error } = await supabase
-      .from("article_approvals")
-      .select("id,status,article_id,article(id,title,overview,created_at,category,author(name))")
-      .eq("admin_id", adminId)
-      .order("created_at", { ascending: false })
+    .from("article_approvals")
+    .select("id,status,article_id,articles(id,title,overview,created_at,category,author:users!author_id(name))")
+    .eq("admin_id", adminId)
+    .order("created_at", { ascending: false })
 
     setLoading(false)
     if (error || !data) {
+      console.error("loadStats error:", error)
       setPendingCount(0)
       setPendingItems([])
       setTotalAssigned(0)
