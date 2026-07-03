@@ -138,16 +138,16 @@ export default function AdminDashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {pendingItems.map(item => {
-                      const articleId = item.article?.id || item.article_id
+                      const articleId = item.articles?.id || item.articles_id
                       return (
                         <div key={item.id} className="rounded-3xl bg-white border border-slate-200 p-5">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div>
-                              <h4 className="text-lg font-bold text-slate-900">{item.article?.title}</h4>
-                              <p className="text-sm text-slate-500 mt-2 line-clamp-2">{item.article?.overview}</p>
+                              <h4 className="text-lg font-bold text-slate-900">{item.articles?.title}</h4>
+                              <p className="text-sm text-slate-500 mt-2 line-clamp-2">{item.articles?.overview}</p>
                               <p className="text-xs text-slate-400 mt-2">
-                                Автор: {item.article?.author?.name ?? "Автор"} ·{" "}
-                                {ARTICLE_CATEGORIES[item.article?.category as keyof typeof ARTICLE_CATEGORIES] || item.article?.category}
+                                Автор: {item.articles?.author?.name ?? "Автор"} ·{" "}
+                                {ARTICLE_CATEGORIES[item.articles?.category as keyof typeof ARTICLE_CATEGORIES] || item.articles?.category}
                               </p>
                             </div>
                             <div className="flex gap-3">

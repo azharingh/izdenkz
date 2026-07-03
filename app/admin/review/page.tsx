@@ -25,7 +25,7 @@ export default function AdminReviewPage() {
     setLoading(true)
     const { data, error } = await supabase
       .from("article_approvals")
-      .select("*, article(*, author(name))")
+      .select("*, articles(*, author:users!author_id(name))")
       .eq("admin_id", adminId)
       .eq("status", REVIEW_STATUSES.CHECKING)
       .order("created_at", { ascending: false })
@@ -96,7 +96,7 @@ export default function AdminReviewPage() {
         ) : (
           <div className="space-y-6">
             {pending.map(item => {
-              const article = item.article || {}
+              const article = item.articles || {}
               const articleId = article.id || item.article_id
               return (
                 <div key={item.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
