@@ -1,5 +1,45 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { toClientUser, type ClientUser } from "@/lib/userDb"
+
+export type ClientUser = {
+  id: string
+  name: string
+  email: string
+  role: string
+  username?: string | null
+  region?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  date_of_birth?: string | null
+  interests?: unknown
+}
+
+export function toClientUser(row: Record<string, any>): ClientUser {
+  const { password, ...rest } = row
+  return rest as ClientUser
+}
+
+export type SignupInput = {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  interests?: unknown
+}
+
+export function signupPayload(input: SignupInput) {
+  const firstName = input.firstName.trim()
+  const lastName = input.lastName.trim()
+
+  return {
+    name: `${firstName} ${lastName}`,
+    first_name: firstName,
+    last_name: lastName,
+    email: input.email,
+    password: input.password,
+    role: "USER",
+    interests: input.interests ?? null,
+  }
+}
 
 export type ProfileInput = {
   firstName: string
