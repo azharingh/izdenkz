@@ -6,7 +6,7 @@ import { ARTICLE_CATEGORIES } from "@/lib/categories"
 export default async function FeedPage() {
   const { data: articles } = await supabase
     .from("articles")
-    .select("*, author(name)")
+    .select("*")
     .eq("status", "APPROVED")
     .order("created_at", { ascending: false })
     .limit(12)
@@ -38,7 +38,7 @@ export default async function FeedPage() {
                   </h2>
                   <p className="text-slate-600 line-clamp-3 mb-5">{article.overview}</p>
                   <div className="flex items-center justify-between text-sm text-slate-500">
-                    <span>{article.author?.name ?? "Автор"}</span>
+                    <span>{article.author_name ?? "Автор"}</span>
                     <span>Толығырақ →</span>
                   </div>
                 </article>

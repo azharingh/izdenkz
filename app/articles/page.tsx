@@ -18,7 +18,7 @@ export default function ArticlesPage() {
     async function load() {
       const { data } = await supabase
         .from("articles")
-        .select("*, author(name)")
+        .select("*")
         .eq("status", "APPROVED")
         .order("created_at", { ascending: false })
       setArticles(data || [])
@@ -90,7 +90,7 @@ export default function ArticlesPage() {
                     </h3>
                     <p className="text-slate-600 text-sm line-clamp-2 mb-3">{article.overview}</p>
                     <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span>{article.author?.name ?? article.author_name}</span>
+                      <span>{article.author_name}</span>
                       <span>{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
                     </div>
                   </div>

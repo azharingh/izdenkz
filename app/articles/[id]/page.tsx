@@ -35,7 +35,7 @@ export default function ArticlePage() {
     if (!id) return
     const { data } = await supabase
       .from("articles")
-      .select("*, author(name)")
+      .select("*")
       .eq("id", id)
       .single()
 
@@ -153,7 +153,7 @@ export default function ArticlePage() {
             {article.title}
           </h1>
           <div className="flex items-center gap-4 text-sm text-slate-500 pb-6 border-b border-slate-200">
-            <span className="font-medium text-slate-700">{article.author?.name ?? article.author_name}</span>
+            <span className="font-medium text-slate-700">{article.author_name}</span>
             <span>{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
           </div>
 

@@ -9,6 +9,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Барлық өрістер қажет." }, { status: 400 })
   }
 
+  // Look up the author's name
+  const { data: authorUser, error: authorError } = await supabaseAdmin
+    .from("users")
+    .select("name")
+    .eq("id", authorId)
+    .maybeSingle()
+
+  if (authorError || !authorUser) {
+    return NextResponse.json({ error: "Автор табылмады." }, { status: 400 })
+  }
+
   const adminCount = ADMIN_REVIEWER_EMAILS.length
 
   const { data: admins, error: adminError } = await supabaseAdmin
@@ -40,6 +51,7 @@ export async function POST(req: NextRequest) {
       content,
       category: category || "lessons",
       author_id: authorId,
+      author_name: authorUser.name,
       status: REVIEW_STATUSES.CHECKING,
     })
     .select()
@@ -60,10 +72,10 @@ export async function POST(req: NextRequest) {
     .insert(approvals)
 
   if (approvalError) {
-  console.error("Approval insert error:", approvalError)
-  await supabaseAdmin.from("articles").delete().eq("id", article.id)
-  return NextResponse.json({ error: approvalError.message }, { status: 500 })
-}
+    console.error("Approval insert error:", approvalError)
+    await supabaseAdmin.from("articles").delete().eq("id", article.id)
+    return NextResponse.json({ error: approvalError.message }, { status: 500 })
+  }
 
   return NextResponse.json({ article })
 }
