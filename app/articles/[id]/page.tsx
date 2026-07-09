@@ -20,6 +20,8 @@ export default function ArticlePage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [accessDenied, setAccessDenied] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [submittingComment, setSubmittingComment] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -28,7 +30,7 @@ export default function ArticlePage() {
     if (stored) setUser(parsedUser)
     loadArticle(parsedUser)
     loadComments()
-    loadLikes()
+    loadLikes(parsedUser?.id)
   }, [id])
 
   async function loadArticle(currentUser: any) {
@@ -61,64 +63,82 @@ export default function ArticlePage() {
 
   async function loadComments() {
     if (!id) return
-    const { data } = await supabase
-      .from("comments")
-      .select("*")
-      .eq("article_id", id)
-      .order("created_at", { ascending: true })
-    setComments(data || [])
+    try {
+      const res = await fetch(`/api/comments?articleId=${encodeURIComponent(id)}`)
+      const json = await res.json()
+      if (res.ok) setComments(json.comments || [])
+    } catch {
+      // keep existing comments on transient errors
+    }
   }
 
-  async function loadLikes() {
+  async function loadLikes(userId?: string) {
     if (!id) return
-    const { count } = await supabase
-      .from("likes")
-      .select("*", { count: "exact", head: true })
-      .eq("article_id", id)
-    setLikesCount(count || 0)
-
-    const stored = localStorage.getItem("izden_user")
-    if (stored) {
-      const u = JSON.parse(stored)
-      const { data } = await supabase
-        .from("likes")
-        .select("*")
-        .eq("article_id", id)
-        .eq("user_id", u.id)
-        .maybeSingle()
-      setLiked(!!data)
+    try {
+      const params = new URLSearchParams({ articleId: id })
+      if (userId) params.set("userId", userId)
+      const res = await fetch(`/api/likes?${params}`)
+      const json = await res.json()
+      if (res.ok) {
+        setLikesCount(json.count || 0)
+        setLiked(!!json.liked)
+      }
+    } catch {
+      // keep existing likes on transient errors
     }
   }
 
   async function toggleLike() {
-  if (!user || !id) return router.push("/auth")
-  const res = await fetch("/api/likes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ articleId: id, userId: user.id }),
-  })
-  const data = await res.json()
-  setLiked(data.liked)
-  setLikesCount(c => data.liked ? c + 1 : c - 1)
-}
+    if (!user || !id) return router.push("/auth")
+    setActionError(null)
+
+    const res = await fetch("/api/likes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ articleId: id, userId: user.id }),
+    })
+    const json = await res.json()
+
+    if (!res.ok) {
+      setActionError(json.error || "Лайк қою мүмкін болмады.")
+      return
+    }
+
+    setLiked(json.liked)
+    setLikesCount(c => (json.liked ? c + 1 : Math.max(0, c - 1)))
+  }
 
   async function addComment() {
-  if (!user || !commentText.trim() || !id) return
-  const res = await fetch("/api/comments", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      articleId: id,
-      authorId: user.id,
-      authorName: user.name,
-      content: commentText.trim(),
-    }),
-  })
-  if (res.ok) {
-    setCommentText("")
-    loadComments()
+    if (!user || !commentText.trim() || !id) return
+    setActionError(null)
+    setSubmittingComment(true)
+
+    try {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          articleId: id,
+          authorId: user.id,
+          authorName: user.name,
+          content: commentText.trim(),
+        }),
+      })
+      const json = await res.json()
+
+      if (!res.ok) {
+        setActionError(json.error || "Пікір жіберілмеді.")
+        return
+      }
+
+      setCommentText("")
+      await loadComments()
+    } catch {
+      setActionError("Желі қатесі. Қайта көріңіз.")
+    } finally {
+      setSubmittingComment(false)
+    }
   }
-}
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50">
@@ -167,6 +187,12 @@ export default function ArticlePage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          {actionError && (
+            <div className="rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 mb-4">
+              {actionError}
+            </div>
+          )}
+
           <div className="flex items-center gap-4 mb-6">
             <button
               onClick={toggleLike}
@@ -187,15 +213,16 @@ export default function ArticlePage() {
                 type="text"
                 value={commentText}
                 onChange={e => setCommentText(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && addComment()}
+                onKeyDown={e => e.key === "Enter" && !submittingComment && addComment()}
                 placeholder="Пікіріңізді жазыңыз..."
                 className="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 focus:border-amber-500 outline-none"
               />
               <button
                 onClick={addComment}
-                className="bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-2.5 rounded-lg font-medium transition"
+                disabled={submittingComment || !commentText.trim()}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-2.5 rounded-lg font-medium transition disabled:opacity-50"
               >
-                Жіберу
+                {submittingComment ? "..." : "Жіберу"}
               </button>
             </div>
           ) : (
@@ -206,17 +233,21 @@ export default function ArticlePage() {
           )}
 
           <div className="space-y-3 mt-4">
-            {comments.map(c => (
-              <div key={c.id} className="bg-slate-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-slate-900">{c.author_name}</span>
-                  <span className="text-xs text-slate-500">
-                    {new Date(c.created_at).toLocaleDateString("kk-KZ")}
-                  </span>
+            {comments.length === 0 ? (
+              <p className="text-sm text-slate-500">Әзірге пікір жоқ. Бірінші болыңыз!</p>
+            ) : (
+              comments.map(c => (
+                <div key={c.id} className="bg-slate-50 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-slate-900">{c.author_name}</span>
+                    <span className="text-xs text-slate-500">
+                      {new Date(c.created_at).toLocaleDateString("kk-KZ")}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-700">{c.content}</p>
                 </div>
-                <p className="text-sm text-slate-700">{c.content}</p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

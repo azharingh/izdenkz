@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS article_approvals (
   UNIQUE (article_id, admin_id)
 );
 
+-- Likes and comments tables (required for article interactions)
 CREATE TABLE IF NOT EXISTS comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   content TEXT NOT NULL,
@@ -31,3 +32,13 @@ CREATE TABLE IF NOT EXISTS likes (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (user_id, article_id)
 );
+
+-- Allow public read via anon key (optional fallback)
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "comments_select_all" ON comments;
+CREATE POLICY "comments_select_all" ON comments FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "likes_select_all" ON likes;
+CREATE POLICY "likes_select_all" ON likes FOR SELECT USING (true);

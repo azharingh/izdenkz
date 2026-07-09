@@ -3,16 +3,31 @@ import { supabaseAdmin } from "@/lib/supabaseServer"
 
 export async function GET(req: NextRequest) {
   const articleId = req.nextUrl.searchParams.get("articleId")
-  if (!articleId) return NextResponse.json({ error: "Missing articleId" }, { status: 400 })
+  const authorId = req.nextUrl.searchParams.get("authorId")
 
-  const { data, error } = await supabaseAdmin
-    .from("comments")
-    .select("*")
-    .eq("article_id", articleId)
-    .order("created_at", { ascending: true })
+  if (articleId) {
+    const { data, error } = await supabaseAdmin
+      .from("comments")
+      .select("*")
+      .eq("article_id", articleId)
+      .order("created_at", { ascending: true })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ comments: data || [] })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ comments: data || [] })
+  }
+
+  if (authorId) {
+    const { data, error } = await supabaseAdmin
+      .from("comments")
+      .select("*, articles(title)")
+      .eq("author_id", authorId)
+      .order("created_at", { ascending: false })
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ comments: data || [] })
+  }
+
+  return NextResponse.json({ error: "Missing articleId or authorId" }, { status: 400 })
 }
 
 export async function POST(req: NextRequest) {
@@ -21,12 +36,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 })
   }
 
+  const { data: article, error: articleError } = await supabaseAdmin
+    .from("articles")
+    .select("id,status")
+    .eq("id", articleId)
+    .maybeSingle()
+
+  if (articleError || !article) {
+    return NextResponse.json({ error: "Мақала табылмады." }, { status: 404 })
+  }
+
+  if (article.status !== "APPROVED") {
+    return NextResponse.json({ error: "Жарияланбаған мақалаға пікір қалдыруға болмайды." }, { status: 400 })
+  }
+
   const { data, error } = await supabaseAdmin
     .from("comments")
     .insert({
       article_id: articleId,
       author_id: authorId,
-      author_name: authorName,
+      author_name: authorName || "Пайдаланушы",
       content: content.trim(),
     })
     .select()

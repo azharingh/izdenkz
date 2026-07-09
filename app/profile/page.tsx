@@ -96,21 +96,15 @@ export default function ProfilePage() {
       .order('created_at', { ascending: false })
     setArticles(arts || [])
 
-    const { data: cmts } = await supabase
-      .from('comments')
-      .select('*, articles(title)')
-      .eq('author_id', userId)
-      .order('created_at', { ascending: false })
-    setComments(cmts || [])
+    const cmtsRes = await fetch(`/api/comments?authorId=${encodeURIComponent(userId)}`)
+      .then(r => r.json())
+      .catch(() => ({ comments: [] }))
+    setComments(cmtsRes?.comments || [])
 
-    if (arts && arts.length > 0) {
-      const ids = arts.map(a => a.id)
-      const { count } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .in('article_id', ids)
-      setTotalLikes(count || 0)
-    }
+    const likesRes = await fetch(`/api/likes?authorId=${encodeURIComponent(userId)}`)
+      .then(r => r.json())
+      .catch(() => ({ count: 0 }))
+    setTotalLikes(likesRes?.count || 0)
 
     setLoading(false)
   }
