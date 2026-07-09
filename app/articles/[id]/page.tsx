@@ -91,30 +91,34 @@ export default function ArticlePage() {
   }
 
   async function toggleLike() {
-    if (!user || !id) return router.push("/auth")
-    if (liked) {
-      await supabase.from("likes").delete()
-        .eq("article_id", id).eq("user_id", user.id)
-      setLikesCount(c => c - 1)
-      setLiked(false)
-    } else {
-      await supabase.from("likes").insert({ article_id: id, user_id: user.id })
-      setLikesCount(c => c + 1)
-      setLiked(true)
-    }
-  }
+  if (!user || !id) return router.push("/auth")
+  const res = await fetch("/api/likes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ articleId: id, userId: user.id }),
+  })
+  const data = await res.json()
+  setLiked(data.liked)
+  setLikesCount(c => data.liked ? c + 1 : c - 1)
+}
 
   async function addComment() {
-    if (!user || !commentText.trim() || !id) return
-    await supabase.from("comments").insert({
-      article_id: id,
-      author_id: user.id,
-      author_name: user.name,
+  if (!user || !commentText.trim() || !id) return
+  const res = await fetch("/api/comments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      articleId: id,
+      authorId: user.id,
+      authorName: user.name,
       content: commentText.trim(),
-    })
+    }),
+  })
+  if (res.ok) {
     setCommentText("")
     loadComments()
   }
+}
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50">
