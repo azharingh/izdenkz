@@ -59,6 +59,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
+  const [avatarPreview, setAvatarPreview] = useState('')
+  const [avatarUrlInput, setAvatarUrlInput] = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+
   // toasts
   const [toastOpen, setToastOpen] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
@@ -199,6 +203,49 @@ export default function ProfilePage() {
     }
   }
 
+  async function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = async () => {
+    const base64 = reader.result as string
+    setAvatarPreview(base64)
+    await saveAvatar({ imageBase64: base64 })
+  }
+  reader.readAsDataURL(file)
+}
+
+async function handleAvatarUrlSave() {
+  if (!avatarUrlInput.trim()) return
+  await saveAvatar({ imageUrl: avatarUrlInput.trim() })
+}
+
+async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) {
+  setUploadingAvatar(true)
+  try {
+    const res = await fetch('/api/upload-avatar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, ...payload }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      showToast('error', json.error || 'Сурет сақталмады.')
+      return
+    }
+    const updated = { ...user, avatarUrl: json.avatarUrl }
+    setUser(updated)
+    localStorage.setItem('izden_user', JSON.stringify(updated))
+    setAvatarUrlInput('')
+    setAvatarPreview('')
+    showToast('success', 'Профиль суреті жаңартылды')
+  } catch {
+    showToast('error', 'Желі қатесі')
+  } finally {
+    setUploadingAvatar(false)
+  }
+}
+
   if (loading) return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -217,9 +264,13 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-6">
           <div className="bg-slate-900 px-8 py-6">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center overflow-hidden relative">
+                {user?.avatarUrl || avatarPreview ? (
+                  <img src={avatarPreview || user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
                 <span className="text-2xl font-bold text-slate-900">{user?.name?.charAt(0).toUpperCase()}</span>
-              </div>
+                )}
+                </div>
               <div className="flex-1">
                 {!editMode ? (
                   <div>
@@ -264,6 +315,35 @@ export default function ProfilePage() {
                         </select>
                       </div>
                     </div>
+                    <div>
+                      <label className="block text-sm text-slate-700 mb-1">Профиль суреті</label>
+                      <div className="flex flex-col gap-2">
+                        <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarFileChange}
+                        disabled={uploadingAvatar}
+                        className="text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                          type="text"
+                          value={avatarUrlInput}
+                          onChange={e => setAvatarUrlInput(e.target.value)}
+                          placeholder="немесе сурет URL сілтемесін қойыңыз"
+                          className="flex-1 px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none"
+                          />
+                          <button
+                          type="button"
+                          onClick={handleAvatarUrlSave}
+                          disabled={uploadingAvatar}
+                          className="bg-slate-700 text-white px-3 py-1 rounded-lg text-sm disabled:opacity-50"
+                          >
+                            Сақтау
+                            </button>
+                            </div>
+                            </div>
+                            </div>
                   </form>
                 )}
               </div>
