@@ -14,8 +14,19 @@ export type ClientUser = {
 }
 
 export function toClientUser(row: Record<string, any>): ClientUser {
-  const { password, ...rest } = row
-  return rest as ClientUser
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    username: row.username ?? null,
+    region: row.region ?? null,
+    firstName: row.first_name ?? null,
+    lastName: row.last_name ?? null,
+    dateOfBirth: row.date_of_birth ?? null,
+    avatarUrl: row.avatar_url ?? null,
+    interests: row.interests ?? null,
+  } as ClientUser
 }
 
 export type SignupInput = {

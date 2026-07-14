@@ -284,29 +284,29 @@ async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) 
                   <form onSubmit={handleSaveProfile} className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <label className="block text-sm text-slate-700 mb-1">Тегі</label>
+                        <label className="block text-sm text-slate-300 mb-1">Тегі</label>
                         <input value={formLastName} onChange={e => setFormLastName(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Тегі" />
                       </div>
                       <div>
-                        <label className="block text-sm text-slate-700 mb-1">Аты</label>
+                        <label className="block text-sm text-slate-300 mb-1">Аты</label>
                         <input value={formFirstName} onChange={e => setFormFirstName(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Аты" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-700 mb-1">Пайдаланушы аты</label>
+                      <label className="block text-sm text-slate-300 mb-1">Пайдаланушы аты</label>
                       <input value={formUsername} onChange={e => setFormUsername(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Пайдаланушы аты (міндетті емес)" />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-700 mb-1">Email</label>
+                      <label className="block text-sm text-slate-300 mb-1">Email</label>
                       <input value={formEmail} readOnly disabled className="w-full px-3 py-2 rounded-md text-sm bg-slate-200 border border-slate-300" />
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <label className="block text-sm text-slate-700 mb-1">Туған күні</label>
+                        <label className="block text-sm text-slate-300 mb-1">Туған күні</label>
                         <input type="date" value={formDateOfBirth} onChange={e => setFormDateOfBirth(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
                       </div>
                       <div>
-                        <label className="block text-sm text-slate-700 mb-1">Өңір</label>
+                        <label className="block text-sm text-slate-300 mb-1">Өңір</label>
                         <select value={formRegion} onChange={e => setFormRegion(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none">
                           <option value="">Өңірді таңдаңыз</option>
                           {KAZAKHSTAN_REGIONS.map(region => (
@@ -316,7 +316,7 @@ async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) 
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-700 mb-1">Профиль суреті</label>
+                      <label className="block text-sm text-slate-300 mb-1">Профиль суреті</label>
                       <div className="flex flex-col gap-2">
                         <input
                         type="file"
