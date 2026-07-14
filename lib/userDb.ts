@@ -7,9 +7,10 @@ export type ClientUser = {
   role: string
   username?: string | null
   region?: string | null
-  first_name?: string | null
-  last_name?: string | null
-  date_of_birth?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  dateOfBirth?: string | null
+  avatarUrl?: string | null
   interests?: unknown
 }
 
