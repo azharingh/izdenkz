@@ -344,13 +344,13 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-3">
               {articles.map(a => (
-                <div key={a.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <Link href={`/articles/${a.id}`} key={a.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
                   <div>
                     <p className="font-medium text-slate-900">{a.title}</p>
                     <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
-                </div>
+                </Link>
               ))}
             </div>
           )}
