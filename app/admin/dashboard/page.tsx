@@ -41,7 +41,9 @@ export default function AdminDashboardPage() {
 
     const data = json.data || []
     setTotalAssigned(data.length)
-    const pending = data.filter((item: any) => item.status === REVIEW_STATUSES.CHECKING)
+    const pending = data.filter((item: any) =>
+      item.articles?.status === REVIEW_STATUSES.CHECKING
+  )
     setPendingCount(pending.length)
     setPendingItems(pending)
   } catch (err) {

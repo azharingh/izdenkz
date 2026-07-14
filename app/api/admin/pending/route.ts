@@ -20,10 +20,10 @@ export async function GET(req: NextRequest) {
   }
 
   const { data, error } = await supabaseAdmin
-    .from("article_approvals")
-    .select("id,status,article_id,articles(id,title,overview,content,category,created_at,author:users!author_id(name))")
-    .eq("admin_id", adminId)
-    .order("created_at", { ascending: false })
+  .from("article_approvals")
+  .select("id,status,article_id,articles(id,title,overview,content,category,created_at,status,author:users!author_id(name))")
+  .eq("admin_id", adminId)
+  .order("created_at", { ascending: false })
 
   if (error) {
     console.error("pending fetch error:", error)
