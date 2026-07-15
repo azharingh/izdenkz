@@ -151,12 +151,18 @@ export default function AdminDashboardPage() {
                         <div key={item.id} className="rounded-3xl bg-white border border-slate-200 p-5">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div>
-                              <h4 className="text-lg font-bold text-slate-900">{item.articles?.title}</h4>
-                              <p className="text-sm text-slate-500 mt-2 line-clamp-2">{item.articles?.overview}</p>
-                              <p className="text-xs text-slate-400 mt-2">
-                                Автор: {item.articles?.author?.name ?? "Автор"} ·{" "}
-                                {ARTICLE_CATEGORIES[item.articles?.category as keyof typeof ARTICLE_CATEGORIES] || item.articles?.category}
-                              </p>
+                              <Link
+                              href={`/articles/${articleId}`}
+                              target="_blank"
+                              className="text-lg font-bold text-slate-900 hover:text-amber-600 transition"
+                              >
+                                {item.articles?.title} →
+                                </Link>
+                                <p className="text-sm text-slate-500 mt-2 line-clamp-2">{item.articles?.overview}</p>
+                                <p className="text-xs text-slate-400 mt-2">
+                                  Автор: {item.articles?.author?.name ?? "Автор"} ·{" "}
+                                  {ARTICLE_CATEGORIES[item.articles?.category as keyof typeof ARTICLE_CATEGORIES] || item.articles?.category}
+                                </p>
                             </div>
                             <div className="flex gap-3">
                               <button
