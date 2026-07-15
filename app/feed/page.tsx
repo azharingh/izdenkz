@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar"
 import { supabase } from "@/lib/supabase"
 import { ARTICLE_CATEGORIES } from "@/lib/categories"
 
+export const dynamic = 'force-dynamic'
+
 export default async function FeedPage() {
   const { data: articles } = await supabase
     .from("articles")
