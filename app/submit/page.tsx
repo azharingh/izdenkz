@@ -99,6 +99,29 @@ export default function SubmitPage() {
               </div>
             </div>
 
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-3">
+                Мақала жариялау талаптары
+              </h2>
+              <p className="text-sm text-slate-600 mb-4">
+                Мақала жіберер алдында төмендегі талаптармен міндетті түрде танысыңыз.
+              </p>
+              <div className="rounded-xl overflow-hidden border border-slate-300">
+                <iframe
+                  src="/zharyalau-talaptary.pdf"
+                  className="w-full h-[500px]"
+                  title="Мақала жариялау талаптары"
+                />
+              </div>
+              
+                <a href="/zharyalau-talaptary.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3">
+                PDF-ті жаңа терезеде ашу &rarr;
+              </a>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Тақырып</label>
