@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase"
 import Navbar from "@/components/Navbar"
 import { ARTICLE_CATEGORIES } from "@/lib/categories"
-import { isAdminEmail } from "@/lib/isAdmin"
 
 export default function ArticlePage() {
   const params = useParams()
@@ -35,29 +33,24 @@ export default function ArticlePage() {
 
   async function loadArticle(currentUser: any) {
     if (!id) return
-    const { data } = await supabase
-      .from("articles")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const searchParams = new URLSearchParams()
+    if (currentUser?.id) searchParams.set("userId", currentUser.id)
+    if (currentUser?.email) searchParams.set("userEmail", currentUser.email)
 
-    if (!data) {
+    const res = await fetch(`/api/articles/${id}?${searchParams.toString()}`)
+
+    if (!res.ok) {
+      if (res.status === 403) {
+        setAccessDenied(true)
+      }
       setArticle(null)
       setLoading(false)
       return
     }
 
-    const isAuthor = currentUser?.id === data.author_id
-    const isAdmin = isAdminEmail(currentUser?.email)
-    const canView = data.status === "APPROVED" || isAuthor || isAdmin
-
-    if (!canView) {
-      setAccessDenied(true)
-      setArticle(null)
-    } else {
-      setArticle(data)
-      setAccessDenied(false)
-    }
+    const { article: data } = await res.json()
+    setArticle(data)
+    setAccessDenied(false)
     setLoading(false)
   }
 
