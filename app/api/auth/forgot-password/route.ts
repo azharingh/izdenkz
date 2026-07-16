@@ -4,7 +4,7 @@ import { createPasswordResetToken, getResetUrl } from "@/lib/resetToken"
 import nodemailer from "nodemailer"
 
 const GENERIC_SUCCESS =
-  "Егер бұл email тіркелген болса, қалпына келтіру сілтемесі жіберілді. Спам папкасын тексеріңіз немесе бірнеше минуттан кейін қайтадан көріңіз."
+  "Егер бұл email тіркелген болса, қалпына келтіру сілтемесі жіберілді. Спам папкасын тексеріңіз."
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json()
