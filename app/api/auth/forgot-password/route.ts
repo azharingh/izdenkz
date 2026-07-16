@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabaseServer"
 import { createPasswordResetToken, getResetUrl } from "@/lib/resetToken"
-import { Resend } from "resend"
+import nodemailer from "nodemailer"
 
 const GENERIC_SUCCESS =
   "Егер бұл email тіркелген болса, қалпына келтіру сілтемесі жіберілді."
@@ -25,13 +25,21 @@ export async function POST(req: NextRequest) {
     const token = createPasswordResetToken(normalizedEmail)
     const resetUrl = getResetUrl(token)
 
-    const apiKey = process.env.RESEND_API_KEY
-    if (apiKey) {
+    const gmailUser = process.env.GMAIL_USER
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD
+
+    if (gmailUser && gmailAppPassword) {
       try {
-        const resend = new Resend(apiKey)
-        const from = process.env.RESEND_FROM_EMAIL || "Izden <onboarding@resend.dev>"
-        await resend.emails.send({
-          from,
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: gmailUser,
+            pass: gmailAppPassword,
+          },
+        })
+
+        await transporter.sendMail({
+          from: `Izden <${gmailUser}>`,
           to: normalizedEmail,
           subject: "Izden — құпиясөзді қалпына келтіру",
           html: `
@@ -46,7 +54,8 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         })
-      } catch {
+      } catch (err) {
+        console.error("Email send error:", err)
         // Do not reveal whether email exists
       }
     }
