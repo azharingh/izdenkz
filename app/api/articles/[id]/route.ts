@@ -28,5 +28,13 @@ export async function GET(
     return NextResponse.json({ error: "Бұл мақала әлі жарияланбаған." }, { status: 403 })
   }
 
-  return NextResponse.json({ article: data })
+  const { data: author } = await supabaseAdmin
+    .from("users")
+    .select("email")
+    .eq("id", data.author_id)
+    .maybeSingle()
+
+  return NextResponse.json({
+    article: { ...data, author_email: author?.email || null },
+  })
 }

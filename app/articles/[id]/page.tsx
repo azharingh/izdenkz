@@ -170,7 +170,12 @@ export default function ArticlePage() {
             {article.title}
           </h1>
           <div className="flex items-center gap-4 text-sm text-slate-500 pb-6 border-b border-slate-200">
-            <span className="font-medium text-slate-700">{article.author_name}</span>
+            <Link href={`/user/${article.author_id}`} className="font-medium text-slate-700 hover:text-amber-600 transition">
+            {article.author_name}
+            </Link>
+            {article.author_email && (
+              <span className="text-slate-400">{article.author_email}</span>
+            )}
             <span>{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
           </div>
 
