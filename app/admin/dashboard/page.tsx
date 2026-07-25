@@ -39,11 +39,13 @@ export default function AdminDashboardPage() {
       return
     }
 
-    const data = json.data || []
-    setTotalAssigned(data.length)
-    const pending = data.filter((item: any) =>
-      item.articles?.status === REVIEW_STATUSES.CHECKING
-  )
+    const allData = json.data || []
+    setTotalAssigned(allData.length)
+
+    const pending = allData.filter((item: any) =>
+      item.articles?.status === REVIEW_STATUSES.CHECKING &&
+      item.status === REVIEW_STATUSES.CHECKING
+    )
     setPendingCount(pending.length)
     setPendingItems(pending)
   } catch (err) {
@@ -54,7 +56,6 @@ export default function AdminDashboardPage() {
     setTotalAssigned(0)
   }
 }
-
   async function handleDecision(articleId: string, decision: string) {
     if (!user) return
 

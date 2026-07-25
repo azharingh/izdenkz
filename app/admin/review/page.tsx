@@ -35,8 +35,9 @@ export default function AdminReviewPage() {
     }
 
     const data = (json.data || []).filter((item: any) =>
-      item.articles?.status === REVIEW_STATUSES.CHECKING
-  )
+      item.articles?.status === REVIEW_STATUSES.CHECKING &&
+      item.status === REVIEW_STATUSES.CHECKING
+    )
     setPending(data)
   } catch (err) {
     console.error("loadPending error:", err)
