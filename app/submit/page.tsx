@@ -145,13 +145,13 @@ export default function SubmitPage() {
                   </p>
                   <div className="rounded-xl overflow-hidden border border-slate-300">
                     <iframe
-                    src="/izden-maqala-rules.pdf"
+                    src="/izden-maqala-talap.pdf"
                     className="w-full h-[500px]"
                     title="Izden Maqala байқау ережесі"
                     />
                     </div>
                     
-                    <a href="/izden-maqala-rules.pdf"
+                    <a href="/izden-maqala-talap.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3"
