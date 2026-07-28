@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseServer"
 import { ADMIN_REVIEWER_EMAILS, REVIEW_STATUSES } from "@/lib/adminConfig"
 
 export async function POST(req: NextRequest) {
-  const { title, overview, content, category, authorId } = await req.json()
+  const { title, overview, content, category, authorId, isContest } = await req.json()
 
   if (!title || !overview || !content || !authorId) {
     return NextResponse.json({ error: "Барлық өрістер қажет." }, { status: 400 })
@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       author_id: authorId,
       author_name: authorUser.name,
       status: REVIEW_STATUSES.CHECKING,
+      is_contest: !!isContest,
     })
     .select()
     .single()

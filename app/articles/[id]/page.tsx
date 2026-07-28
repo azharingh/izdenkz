@@ -166,6 +166,12 @@ export default function ArticlePage() {
           <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded">
             {ARTICLE_CATEGORIES[article.category as keyof typeof ARTICLE_CATEGORIES] || article.category}
           </span>
+          
+          {article.is_contest && (
+            <span className="text-xs font-medium text-white bg-slate-900 px-2 py-1 rounded ml-2">
+              Izden Maqala Contestant
+            </span>
+          )}
           <h1 className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-3">
             {article.title}
           </h1>

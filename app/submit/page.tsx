@@ -16,6 +16,7 @@ export default function SubmitPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [submitDate, setSubmitDate] = useState("")
+  const [isContest, setIsContest] = useState(false)
 
   useEffect(() => {
     setSubmitDate(new Date().toLocaleDateString("kk-KZ"))
@@ -57,6 +58,7 @@ export default function SubmitPage() {
         category,
         authorId: user.id,
         authorName: user.name,
+        isContest,
       }),
     })
 
@@ -73,6 +75,7 @@ export default function SubmitPage() {
     setOverview("")
     setContent("")
     setCategory("lessons")
+    setIsContest(false)
     setTimeout(() => router.push("/profile"), 1500)
   }
 
@@ -121,6 +124,43 @@ export default function SubmitPage() {
                 PDF-ті жаңа терезеде ашу &rarr;
               </a>
             </div>
+
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                type="checkbox"
+                checked={isContest}
+                onChange={e => setIsContest(e.target.checked)}
+                className="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-lg font-semibold text-slate-900">
+                  Izden Maqala байқауына қатысу
+                </span>
+              </label>
+              
+              {isContest && (
+                <div className="mt-4">
+                  <p className="text-sm text-slate-600 mb-4">
+                    Конкурсқа қатысу үшін төмендегі ережемен міндетті түрде танысыңыз.
+                  </p>
+                  <div className="rounded-xl overflow-hidden border border-slate-300">
+                    <iframe
+                    src="/izden-maqala-rules.pdf"
+                    className="w-full h-[500px]"
+                    title="Izden Maqala байқау ережесі"
+                    />
+                    </div>
+                    
+                    <a href="/izden-maqala-rules.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3"
+                    >
+                      PDF-ті жаңа терезеде ашу →
+                    </a>
+                    </div>
+                  )}
+                  </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>

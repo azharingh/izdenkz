@@ -33,6 +33,11 @@ export default async function FeedPage() {
                     <span className="text-xs font-semibold uppercase tracking-wide text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
                       {ARTICLE_CATEGORIES[article.category as keyof typeof ARTICLE_CATEGORIES] || article.category}
                     </span>
+                    {article.is_contest && (
+                      <span className="text-xs font-semibold uppercase tracking-wide text-white bg-slate-900 px-3 py-1 rounded-full ml-2">
+                        Izden Maqala Contestant
+                      </span>
+                    )}
                     <span className="text-xs text-slate-500">{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
                   </div>
                   <h2 className="font-heading text-2xl font-bold text-slate-900 mb-3 group-hover:text-amber-600 transition">
