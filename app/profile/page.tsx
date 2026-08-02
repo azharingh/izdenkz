@@ -262,9 +262,9 @@ async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pt-24">
 
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-6">
-          <div className="bg-slate-900 px-8 py-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center overflow-hidden relative">
+          <div className="bg-slate-900 px-4 sm:px-8 py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center overflow-hidden relative shrink-0">
                 {user?.avatarUrl || avatarPreview ? (
                   <img src={avatarPreview || user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -348,7 +348,7 @@ async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) 
                 )}
               </div>
 
-              <div className="ml-auto flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
                 {!editMode ? (
                   <>
                     <button onClick={() => setEditMode(true)} className="bg-white text-slate-900 px-3 py-1 rounded-lg text-sm font-medium">Profile өзгерту</button>
@@ -393,7 +393,7 @@ async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) 
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6">
             <div className="bg-slate-50 rounded-lg p-4 text-center">
               <p className="text-2xl font-bold text-amber-600">{published.length}</p>
               <p className="text-xs text-slate-500">Жарияланған</p>
@@ -424,13 +424,13 @@ async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) 
           ) : (
             <div className="space-y-3">
               {articles.map(a => (
-                <Link href={`/articles/${a.id}`} key={a.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                  <div>
-                    <p className="font-medium text-slate-900">{a.title}</p>
+                <Link href={`/articles/${a.id}`} key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-900 break-words">{a.title}</p>
                     <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
-                </Link>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium self-start sm:self-auto shrink-0 ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
+                  </Link>
               ))}
             </div>
           )}
