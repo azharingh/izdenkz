@@ -29,3 +29,11 @@ html {
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 58, 95, 0.75) 100%);
   background-color: #0f172a;
 }
+
+@keyframes seek-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.seek-dot {
+  animation: seek-pulse 2s ease-in-out infinite;
+}
