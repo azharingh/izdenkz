@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
@@ -9,25 +9,10 @@ import { supabase } from '@/lib/supabase'
 import { ARTICLE_CATEGORIES } from '@/lib/categories'
 
 const KAZAKHSTAN_REGIONS = [
-  'Алматы облысы',
-  'Абай облысы',
-  'Ақмола облысы',
-  'Ақтөбе облысы',
-  'Атырау облысы',
-  'Батыс Қазақстан облысы',
-  'Жамбыл облысы',
-  'Қарағанды облысы',
-  'Қостанай облысы',
-  'Қызылорда облысы',
-  'Маңғыстау облысы',
-  'Павлодар облысы',
-  'Солтүстік Қазақстан облысы',
-  'Түркістан облысы',
-  'Шығыс Қазақстан облысы',
-  'Астана',
-  'Алматы',
-  'Жетісу облысы',
-  'Ұлытау облысы',
+  'Алматы облысы', 'Абай облысы', 'Ақмола облысы', 'Ақтөбе облысы', 'Атырау облысы',
+  'Батыс Қазақстан облысы', 'Жамбыл облысы', 'Қарағанды облысы', 'Қостанай облысы',
+  'Қызылорда облысы', 'Маңғыстау облысы', 'Павлодар облысы', 'Солтүстік Қазақстан облысы',
+  'Түркістан облысы', 'Шығыс Қазақстан облысы', 'Астана', 'Алматы', 'Жетісу облысы', 'Ұлытау облысы',
 ]
 
 const STATUS_LABELS: Record<string, string> = {
@@ -44,6 +29,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function ProfilePage() {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [user, setUser] = useState(null as any)
   const [editMode, setEditMode] = useState(false)
   const [formFirstName, setFormFirstName] = useState('')
@@ -58,17 +44,17 @@ export default function ProfilePage() {
   const [totalLikes, setTotalLikes] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'articles' | 'comments'>('articles')
 
   const [avatarPreview, setAvatarPreview] = useState('')
   const [avatarUrlInput, setAvatarUrlInput] = useState('')
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [showAvatarUrlField, setShowAvatarUrlField] = useState(false)
 
-  // toasts
   const [toastOpen, setToastOpen] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const [toastType, setToastType] = useState('info' as 'success' | 'error' | 'info')
 
-  // password change
   const [changingPassword, setChangingPassword] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -122,6 +108,17 @@ export default function ProfilePage() {
   function handleLogout() {
     localStorage.removeItem('izden_user')
     router.push('/')
+  }
+
+  function cancelEdit() {
+    setEditMode(false)
+    setShowAvatarUrlField(false)
+    setFormFirstName(user.firstName || '')
+    setFormLastName(user.lastName || '')
+    setFormUsername(user.username || '')
+    setFormEmail(user.email || '')
+    setFormDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().slice(0, 10) : '')
+    setFormRegion(user.region || '')
   }
 
   async function handleSaveProfile(e?: React.FormEvent) {
@@ -204,52 +201,56 @@ export default function ProfilePage() {
   }
 
   async function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-  const file = e.target.files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = async () => {
-    const base64 = reader.result as string
-    setAvatarPreview(base64)
-    await saveAvatar({ imageBase64: base64 })
-  }
-  reader.readAsDataURL(file)
-}
-
-async function handleAvatarUrlSave() {
-  if (!avatarUrlInput.trim()) return
-  await saveAvatar({ imageUrl: avatarUrlInput.trim() })
-}
-
-async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) {
-  setUploadingAvatar(true)
-  try {
-    const res = await fetch('/api/upload-avatar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, ...payload }),
-    })
-    const json = await res.json()
-    if (!res.ok) {
-      showToast('error', json.error || 'Сурет сақталмады.')
-      return
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const base64 = reader.result as string
+      setAvatarPreview(base64)
+      await saveAvatar({ imageBase64: base64 })
     }
-    const updated = { ...user, avatarUrl: json.avatarUrl }
-    setUser(updated)
-    localStorage.setItem('izden_user', JSON.stringify(updated))
-    setAvatarUrlInput('')
-    setAvatarPreview('')
-    showToast('success', 'Профиль суреті жаңартылды')
-  } catch {
-    showToast('error', 'Желі қатесі')
-  } finally {
-    setUploadingAvatar(false)
+    reader.readAsDataURL(file)
   }
-}
+
+  async function handleAvatarUrlSave() {
+    if (!avatarUrlInput.trim()) return
+    await saveAvatar({ imageUrl: avatarUrlInput.trim() })
+  }
+
+  async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) {
+    setUploadingAvatar(true)
+    try {
+      const res = await fetch('/api/upload-avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, ...payload }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        showToast('error', json.error || 'Сурет сақталмады.')
+        return
+      }
+      const updated = { ...user, avatarUrl: json.avatarUrl }
+      setUser(updated)
+      localStorage.setItem('izden_user', JSON.stringify(updated))
+      setAvatarUrlInput('')
+      setAvatarPreview('')
+      setShowAvatarUrlField(false)
+      showToast('success', 'Профиль суреті жаңартылды')
+    } catch {
+      showToast('error', 'Желі қатесі')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <p className="text-center text-slate-500 py-40">Жүктелуде...</p>
+      <div className="max-w-3xl mx-auto px-4 py-24 pt-32 space-y-6">
+        <div className="h-40 bg-white rounded-2xl border border-slate-200 animate-pulse" />
+        <div className="h-24 bg-white rounded-2xl border border-slate-200 animate-pulse" />
+      </div>
     </div>
   )
 
@@ -259,198 +260,240 @@ async function saveAvatar(payload: { imageBase64?: string; imageUrl?: string }) 
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pt-24">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pt-24">
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-6">
-          <div className="bg-slate-900 px-4 sm:px-8 py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center overflow-hidden relative shrink-0">
-                {user?.avatarUrl || avatarPreview ? (
-                  <img src={avatarPreview || user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                <span className="text-2xl font-bold text-slate-900">{user?.name?.charAt(0).toUpperCase()}</span>
-                )}
+        {/* Identity card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+          <div className="bg-slate-900 px-5 sm:px-8 py-8 sm:py-10">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+              {/* Avatar — click to change when editing */}
+              <div className="relative shrink-0 mx-auto sm:mx-0">
+                <div className="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center overflow-hidden">
+                  {user?.avatarUrl || avatarPreview ? (
+                    <img src={avatarPreview || user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-3xl font-bold text-slate-900">{user?.name?.charAt(0).toUpperCase()}</span>
+                  )}
                 </div>
-              <div className="flex-1">
-                {!editMode ? (
-                  <div>
-                    <h1 className="text-xl font-bold text-white">{user?.firstName} {user?.lastName}</h1>
-                    <p className="text-slate-400">{user?.username ? `@${user.username}` : 'Пайдаланушы аты жоқ'}</p>
-                    <p className="text-slate-400">{user?.email}</p>
-                    {user?.region && <p className="text-slate-400">Аймақ: {user.region}</p>}
-                    {user?.dateOfBirth && <p className="text-slate-400">Туған күн: {new Date(user.dateOfBirth).toLocaleDateString('kk-KZ')}</p>}
-                  </div>
-                ) : (
-                  <form onSubmit={handleSaveProfile} className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-sm text-slate-300 mb-1">Тегі</label>
-                        <input value={formLastName} onChange={e => setFormLastName(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Тегі" />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-slate-300 mb-1">Аты</label>
-                        <input value={formFirstName} onChange={e => setFormFirstName(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Аты" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm text-slate-300 mb-1">Пайдаланушы аты</label>
-                      <input value={formUsername} onChange={e => setFormUsername(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Пайдаланушы аты (міндетті емес)" />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-slate-300 mb-1">Email</label>
-                      <input value={formEmail} readOnly disabled className="w-full px-3 py-2 rounded-md text-sm bg-slate-200 border border-slate-300" />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-sm text-slate-300 mb-1">Туған күні</label>
-                        <input type="date" value={formDateOfBirth} onChange={e => setFormDateOfBirth(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-slate-300 mb-1">Өңір</label>
-                        <select value={formRegion} onChange={e => setFormRegion(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none">
-                          <option value="">Өңірді таңдаңыз</option>
-                          {KAZAKHSTAN_REGIONS.map(region => (
-                            <option key={region} value={region}>{region}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm text-slate-300 mb-1">Профиль суреті</label>
-                      <div className="flex flex-col gap-2">
-                        <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarFileChange}
-                        disabled={uploadingAvatar}
-                        className="text-sm"
-                        />
-                        <div className="flex gap-2">
-                          <input
-                          type="text"
-                          value={avatarUrlInput}
-                          onChange={e => setAvatarUrlInput(e.target.value)}
-                          placeholder="немесе сурет URL сілтемесін қойыңыз"
-                          className="flex-1 px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none"
-                          />
-                          <button
-                          type="button"
-                          onClick={handleAvatarUrlSave}
-                          disabled={uploadingAvatar}
-                          className="bg-slate-700 text-white px-3 py-1 rounded-lg text-sm disabled:opacity-50"
-                          >
-                            Сақтау
-                            </button>
-                            </div>
-                            </div>
-                            </div>
-                  </form>
+                {editMode && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="absolute inset-0 w-20 h-20 rounded-full bg-black/50 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-xs font-medium"
+                  >
+                    {uploadingAvatar ? '...' : 'Өзгерту'}
+                  </button>
                 )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarFileChange}
+                  className="hidden"
+                />
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+              <div className="flex-1 text-center sm:text-left min-w-0">
+                <h1 className="text-xl font-bold text-white break-words">{user?.firstName} {user?.lastName}</h1>
+                <p className="text-slate-400 text-sm mt-0.5">{user?.username ? `@${user.username}` : 'Пайдаланушы аты жоқ'}</p>
+                <p className="text-slate-400 text-sm">{user?.email}</p>
+              </div>
+
+              <div className="flex items-center justify-center sm:justify-end gap-2 shrink-0">
                 {!editMode ? (
                   <>
-                    <button onClick={() => setEditMode(true)} className="bg-white text-slate-900 px-3 py-1 rounded-lg text-sm font-medium">Profile өзгерту</button>
-                    <button onClick={handleLogout} className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Шығу</button>
+                    <button onClick={() => setEditMode(true)} className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 transition">
+                      Өзгерту
+                    </button>
+                    <button onClick={handleLogout} className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                      Шығу
+                    </button>
                   </>
                 ) : (
                   <>
-                    <button type="button" onClick={() => {
-                      setEditMode(false)
-                      setFormFirstName(user.firstName || '')
-                      setFormLastName(user.lastName || '')
-                      setFormUsername(user.username || '')
-                      setFormEmail(user.email || '')
-                      setFormDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().slice(0, 10) : '')
-                      setFormRegion(user.region || '')
-                    }} className="bg-slate-700 text-white px-3 py-1 rounded-lg text-sm">Болдырмау</button>
-                    <button type="button" onClick={handleSaveProfile} disabled={saving} className="bg-amber-500 text-slate-900 px-3 py-1 rounded-lg text-sm disabled:opacity-50">{saving ? 'Жүктелуде...' : 'Сақтау'}</button>
+                    <button type="button" onClick={cancelEdit} className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition">
+                      Болдырмау
+                    </button>
+                    <button type="button" onClick={handleSaveProfile} disabled={saving} className="bg-amber-500 text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-400 transition disabled:opacity-50">
+                      {saving ? 'Сақталуда...' : 'Сақтау'}
+                    </button>
                   </>
                 )}
               </div>
             </div>
+
+            {editMode && (
+              <button
+                type="button"
+                onClick={() => setShowAvatarUrlField(v => !v)}
+                className="text-xs text-slate-400 hover:text-amber-400 transition mt-3 mx-auto sm:mx-0 block"
+              >
+                {showAvatarUrlField ? 'Файл жүктеу' : 'немесе URL сілтеме қою'}
+              </button>
+            )}
+            {editMode && showAvatarUrlField && (
+              <div className="flex gap-2 mt-2 max-w-sm mx-auto sm:mx-0">
+                <input
+                  type="text"
+                  value={avatarUrlInput}
+                  onChange={e => setAvatarUrlInput(e.target.value)}
+                  placeholder="Сурет URL сілтемесі"
+                  className="flex-1 px-3 py-1.5 rounded-md text-sm border border-slate-600 bg-slate-800 text-white placeholder:text-slate-500 focus:border-amber-500 outline-none"
+                />
+                <button type="button" onClick={handleAvatarUrlSave} disabled={uploadingAvatar} className="bg-amber-500 text-slate-900 px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-50">
+                  Сақтау
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Password change */}
-          <div className="p-4 border-t border-slate-200">
-            {!changingPassword ? (
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-slate-700">Құпиясөзді өзгерту</p>
-                <button onClick={() => setChangingPassword(true)} className="ml-auto text-sm bg-white text-slate-900 px-3 py-1 rounded-lg">Өзгерту</button>
+          {/* Not editing: quick meta row */}
+          {!editMode && (user?.region || user?.dateOfBirth) && (
+            <div className="px-5 sm:px-8 py-3 border-b border-slate-100 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
+              {user?.region && <span>📍 {user.region}</span>}
+              {user?.dateOfBirth && <span>🎂 {new Date(user.dateOfBirth).toLocaleDateString('kk-KZ')}</span>}
+            </div>
+          )}
+
+          {/* Edit form */}
+          {editMode && (
+            <form onSubmit={handleSaveProfile} className="px-5 sm:px-8 py-6 space-y-5 border-b border-slate-100">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">Аты</label>
+                  <input value={formFirstName} onChange={e => setFormFirstName(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Аты" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">Тегі</label>
+                  <input value={formLastName} onChange={e => setFormLastName(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="Тегі" />
+                </div>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">Пайдаланушы аты</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">@</span>
+                  <input value={formUsername} onChange={e => setFormUsername(e.target.value)} className="w-full pl-7 pr-3 py-2.5 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" placeholder="username" />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">Туған күні</label>
+                  <input type="date" value={formDateOfBirth} onChange={e => setFormDateOfBirth(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">Өңір</label>
+                  <select value={formRegion} onChange={e => setFormRegion(e.target.value)} className="w-full px-3 py-2.5 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none">
+                    <option value="">Өңірді таңдаңыз</option>
+                    {KAZAKHSTAN_REGIONS.map(region => (
+                      <option key={region} value={region}>{region}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">Email</label>
+                <input value={formEmail} readOnly disabled className="w-full px-3 py-2.5 rounded-lg text-sm bg-slate-100 border border-slate-200 text-slate-500" />
+              </div>
+            </form>
+          )}
+
+          {/* Password change */}
+          <div className="px-5 sm:px-8 py-4 border-b border-slate-100">
+            {!changingPassword ? (
+              <button onClick={() => setChangingPassword(true)} className="text-sm text-slate-600 hover:text-amber-600 transition font-medium inline-flex items-center gap-1.5">
+                🔒 Құпиясөзді өзгерту
+              </button>
             ) : (
-              <form onSubmit={handleChangePassword} className="space-y-2">
-                <input type="password" placeholder="Ағымдағы құпиясөз" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
-                <input type="password" placeholder="Жаңа құпиясөз" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
-                <input type="password" placeholder="Жаңа құпиясөзді қайта енгізіңіз" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 rounded-md text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => setChangingPassword(false)} className="bg-slate-700 text-white px-3 py-1 rounded-lg">Болдырмау</button>
-                  <button type="submit" className="bg-amber-500 text-slate-900 px-3 py-1 rounded-lg">Сақтау</button>
+              <form onSubmit={handleChangePassword} className="space-y-2 max-w-sm">
+                <input type="password" placeholder="Ағымдағы құпиясөз" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
+                <input type="password" placeholder="Жаңа құпиясөз" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
+                <input type="password" placeholder="Жаңа құпиясөзді қайта енгізіңіз" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 bg-white focus:border-amber-500 outline-none" />
+                <div className="flex gap-2 pt-1">
+                  <button type="button" onClick={() => setChangingPassword(false)} className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-sm">Болдырмау</button>
+                  <button type="submit" className="bg-amber-500 text-slate-900 px-3 py-1.5 rounded-lg text-sm font-medium">Сақтау</button>
                 </div>
               </form>
             )}
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6">
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-amber-600">{published.length}</p>
-              <p className="text-xs text-slate-500">Жарияланған</p>
+          {/* Stats — pill row */}
+          <div className="px-5 sm:px-8 py-5 flex flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-sm font-medium">
+              <span>{published.length}</span><span className="text-amber-600/70 font-normal">жарияланған</span>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">{pending.length}</p>
-              <p className="text-xs text-slate-500">Тексерілуде</p>
+            <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium">
+              <span>{pending.length}</span><span className="text-blue-600/70 font-normal">тексерілуде</span>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-rose-500">{totalLikes}</p>
-              <p className="text-xs text-slate-500">Лайктар</p>
+            <div className="flex items-center gap-1.5 bg-rose-50 text-rose-600 px-3 py-1.5 rounded-full text-sm font-medium">
+              <span>{totalLikes}</span><span className="text-rose-500/70 font-normal">лайк</span>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-emerald-600">{comments.length}</p>
-              <p className="text-xs text-slate-500">Пікірлер</p>
+            <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-sm font-medium">
+              <span>{comments.length}</span><span className="text-emerald-600/70 font-normal">пікір</span>
             </div>
           </div>
         </div>
 
-        {/* My Articles */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-xl font-bold text-slate-900">Менің мақалаларым</h2>
-            <Link href="/submit" className="text-sm text-amber-600 hover:text-amber-700 font-medium">+ Жаңа мақала</Link>
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="flex border-b border-slate-200">
+            <button
+              onClick={() => setActiveTab('articles')}
+              className={`flex-1 px-4 py-3.5 text-sm font-semibold transition relative ${
+                activeTab === 'articles' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Мақалалар ({articles.length})
+              {activeTab === 'articles' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('comments')}
+              className={`flex-1 px-4 py-3.5 text-sm font-semibold transition relative ${
+                activeTab === 'comments' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Пікірлер ({comments.length})
+              {activeTab === 'comments' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />}
+            </button>
           </div>
-          {articles.length === 0 ? (
-            <p className="text-slate-500 text-sm">Әзірге мақала жоқ.</p>
-          ) : (
-            <div className="space-y-3">
-              {articles.map(a => (
-                <Link href={`/articles/${a.id}`} key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                  <div className="min-w-0">
-                    <p className="font-medium text-slate-900 break-words">{a.title}</p>
-                    <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium self-start sm:self-auto shrink-0 ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
-                  </Link>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Comments archive */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="font-heading text-xl font-bold text-slate-900 mb-4">Пікірлер архиві</h2>
-          {comments.length === 0 ? (
-            <p className="text-slate-500 text-sm">Әзірге пікір жоқ.</p>
-          ) : (
-            <div className="space-y-3">
-              {comments.map(c => (
-                <div key={c.id} className="p-3 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-700">{c.content}</p>
-                  <p className="text-xs text-slate-500 mt-1">{c.articles?.title} · {new Date(c.created_at).toLocaleDateString('kk-KZ')}</p>
+          <div className="p-5 sm:p-6">
+            {activeTab === 'articles' ? (
+              <>
+                <div className="flex justify-end mb-3">
+                  <Link href="/submit" className="text-sm text-amber-600 hover:text-amber-700 font-medium">+ Жаңа мақала</Link>
                 </div>
-              ))}
-            </div>
-          )}
+                {articles.length === 0 ? (
+                  <p className="text-slate-500 text-sm text-center py-8">Әзірге мақала жоқ.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {articles.map(a => (
+                      <Link href={`/articles/${a.id}`} key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                        <div className="min-w-0">
+                          <p className="font-medium text-slate-900 break-words">{a.title}</p>
+                          <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium self-start sm:self-auto shrink-0 ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              comments.length === 0 ? (
+                <p className="text-slate-500 text-sm text-center py-8">Әзірге пікір жоқ.</p>
+              ) : (
+                <div className="space-y-2">
+                  {comments.map(c => (
+                    <div key={c.id} className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-sm text-slate-700">{c.content}</p>
+                      <p className="text-xs text-slate-500 mt-1">{c.articles?.title} · {new Date(c.created_at).toLocaleDateString('kk-KZ')}</p>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
         </div>
 
       </div>
