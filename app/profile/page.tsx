@@ -19,12 +19,14 @@ const STATUS_LABELS: Record<string, string> = {
   CHECKING: 'Тексерілуде',
   APPROVED: 'Жарияланды',
   DECLINED: 'Қабылданбады',
+  DRAFT: 'Драфт',
 }
 
 const STATUS_STYLES: Record<string, string> = {
   CHECKING: 'status-checking',
   APPROVED: 'status-approved',
   DECLINED: 'status-declined',
+  DRAFT: 'bg-slate-100 text-slate-500',
 }
 
 export default function ProfilePage() {
@@ -468,13 +470,13 @@ export default function ProfilePage() {
                 ) : (
                   <div className="space-y-2">
                     {articles.map(a => (
-                      <Link href={`/articles/${a.id}`} key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                        <div className="min-w-0">
-                          <p className="font-medium text-slate-900 break-words">{a.title}</p>
-                          <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
-                        </div>
+                      <div key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                        <Link href={a.status === 'DRAFT' ? `/submit?edit=${a.id}` : `/articles/${a.id}`} className="min-w-0 flex-1">
+                        <p className="font-medium text-slate-900 break-words">{a.title}</p>
+                        <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
+                        </Link>
                         <span className={`text-xs px-2 py-1 rounded-full font-medium self-start sm:self-auto shrink-0 ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 )}

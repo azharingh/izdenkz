@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
+import sanitizeHtml from "sanitize-html"
 import { supabaseAdmin } from "@/lib/supabaseServer"
 import { ADMIN_REVIEWER_EMAILS, REVIEW_STATUSES } from "@/lib/adminConfig"
 
+function sanitize(html: string) {
+  return sanitizeHtml(html, {
+    allowedTags: ["b", "strong", "i", "em", "u", "br", "p", "div"],
+    allowedAttributes: {},
+  })
+}
+
 export async function POST(req: NextRequest) {
-  const { title, overview, content, category, authorId, isContest } = await req.json()
+  const { title, overview, content, category, authorId, isContest, isDraft } = await req.json()
 
   if (!title || !overview || !content || !authorId) {
     return NextResponse.json({ error: "Барлық өрістер қажет." }, { status: 400 })
   }
 
-  // Look up the author's name
   const { data: authorUser, error: authorError } = await supabaseAdmin
     .from("users")
     .select("name")
@@ -18,6 +25,32 @@ export async function POST(req: NextRequest) {
 
   if (authorError || !authorUser) {
     return NextResponse.json({ error: "Автор табылмады." }, { status: 400 })
+  }
+
+  const cleanContent = sanitize(content)
+
+  // Draft: save privately, skip admin checks and approvals entirely
+  if (isDraft) {
+    const { data: draft, error: draftError } = await supabaseAdmin
+      .from("articles")
+      .insert({
+        title,
+        overview,
+        content: cleanContent,
+        category: category || "lessons",
+        author_id: authorId,
+        author_name: authorUser.name,
+        status: REVIEW_STATUSES.DRAFT,
+        is_contest: !!isContest,
+      })
+      .select()
+      .single()
+
+    if (draftError || !draft) {
+      return NextResponse.json({ error: draftError?.message || "Драфт сақталмады." }, { status: 500 })
+    }
+
+    return NextResponse.json({ article: draft })
   }
 
   const adminCount = ADMIN_REVIEWER_EMAILS.length
@@ -36,9 +69,7 @@ export async function POST(req: NextRequest) {
       email => !admins?.some(a => a.email === email)
     )
     return NextResponse.json(
-      {
-        error: `Барлық ${adminCount} әкімші тіркелмеген. Қажет email: ${missing.join(", ")}`,
-      },
+      { error: `Барлық ${adminCount} әкімші тіркелмеген. Қажет email: ${missing.join(", ")}` },
       { status: 400 }
     )
   }
@@ -48,7 +79,7 @@ export async function POST(req: NextRequest) {
     .insert({
       title,
       overview,
-      content,
+      content: cleanContent,
       category: category || "lessons",
       author_id: authorId,
       author_name: authorUser.name,

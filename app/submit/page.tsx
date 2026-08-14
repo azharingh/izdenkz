@@ -1,13 +1,17 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Navbar from "@/components/Navbar"
+import RichTextEditor from "@/components/RichTextEditor"
 import { ARTICLE_CATEGORIES } from "@/lib/categories"
 import { REQUIRED_ADMIN_APPROVALS } from "@/lib/adminConfig"
 
 export default function SubmitPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const editId = searchParams.get("edit")
+
   const [user, setUser] = useState<any>(null)
   const [title, setTitle] = useState("")
   const [overview, setOverview] = useState("")
@@ -17,6 +21,7 @@ export default function SubmitPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [submitDate, setSubmitDate] = useState("")
   const [isContest, setIsContest] = useState(false)
+  const [loadingDraft, setLoadingDraft] = useState(!!editId)
 
   useEffect(() => {
     setSubmitDate(new Date().toLocaleDateString("kk-KZ"))
@@ -28,55 +33,96 @@ export default function SubmitPage() {
       router.push("/auth")
       return
     }
+    const u = JSON.parse(stored)
+    setUser(u)
 
-    setUser(JSON.parse(stored))
-  }, [router])
+    if (editId) {
+      fetch(`/api/articles/${editId}?userId=${u.id}&userEmail=${encodeURIComponent(u.email)}`)
+        .then(r => r.json())
+        .then(json => {
+          if (json.article) {
+            setTitle(json.article.title || "")
+            setOverview(json.article.overview || "")
+            setContent(json.article.content || "")
+            setCategory(json.article.category || "lessons")
+            setIsContest(!!json.article.is_contest)
+          }
+          setLoadingDraft(false)
+        })
+        .catch(() => setLoadingDraft(false))
+    }
+  }, [router, editId])
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-
-    if (!title.trim() || !overview.trim() || !content.trim()) {
+  async function submitArticle(mode: "draft" | "submit") {
+    if (!title.trim() || !overview.trim() || !content.trim() || content === "<br>") {
       setMessage({ type: "error", text: "Барлық өрістерді толтырыңыз." })
       return
     }
-
-    if (!user) {
-      setMessage({ type: "error", text: "Жүйеге кіріңіз." })
-      return
-    }
+    if (!user) return
 
     setLoading(true)
     setMessage(null)
 
-    const res = await fetch("/api/articles/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: title.trim(),
-        overview: overview.trim(),
-        content: content.trim(),
-        category,
-        authorId: user.id,
-        authorName: user.name,
-        isContest,
-      }),
-    })
+    try {
+      let res
+      if (editId) {
+        res = await fetch(`/api/articles/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            authorId: user.id,
+            title: title.trim(),
+            overview: overview.trim(),
+            content,
+            category,
+            action: mode,
+          }),
+        })
+      } else {
+        res = await fetch("/api/articles/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            overview: overview.trim(),
+            content,
+            category,
+            authorId: user.id,
+            authorName: user.name,
+            isContest,
+            isDraft: mode === "draft",
+          }),
+        })
+      }
 
-    const json = await res.json()
-    setLoading(false)
+      const json = await res.json()
+      setLoading(false)
 
-    if (!res.ok) {
-      setMessage({ type: "error", text: json.error || "Мақала жіберілмеді." })
-      return
+      if (!res.ok) {
+        setMessage({ type: "error", text: json.error || "Қате орын алды." })
+        return
+      }
+
+      setMessage({
+        type: "success",
+        text: mode === "draft"
+          ? "Драфт сақталды."
+          : `Мақала тексеруге жіберілді. ${REQUIRED_ADMIN_APPROVALS} әкімші мақұлдауы қажет.`,
+      })
+      setTimeout(() => router.push("/profile"), 1200)
+    } catch {
+      setLoading(false)
+      setMessage({ type: "error", text: "Желі қатесі." })
     }
+  }
 
-    setMessage({ type: "success", text: `Мақала тексеруге жіберілді. ${REQUIRED_ADMIN_APPROVALS} әкімші мақұлдауы қажет.` })
-    setTitle("")
-    setOverview("")
-    setContent("")
-    setCategory("lessons")
-    setIsContest(false)
-    setTimeout(() => router.push("/profile"), 1500)
+  if (loadingDraft) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar />
+        <p className="text-center text-slate-500 py-40">Жүктелуде...</p>
+      </div>
+    )
   }
 
   return (
@@ -85,7 +131,9 @@ export default function SubmitPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pt-24">
         <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
           <div className="bg-slate-900 px-8 py-6">
-            <h1 className="font-heading text-3xl md:text-4xl font-bold text-white">Мақала жіберу</h1>
+            <h1 className="font-heading text-3xl md:text-4xl font-bold text-white">
+              {editId ? "Драфтты өңдеу" : "Мақала жіберу"}
+            </h1>
             <p className="text-slate-300 mt-2">Автор туралы ақпарат жүйеге автоматты түрде қосылады.</p>
           </div>
 
@@ -103,108 +151,53 @@ export default function SubmitPage() {
             </div>
 
             <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-3">
-                Мақала жариялау талаптары
-              </h2>
-              <p className="text-sm text-slate-600 mb-4">
-                Мақала жіберер алдында төмендегі талаптармен міндетті түрде танысыңыз.
-              </p>
+              <h2 className="text-lg font-semibold text-slate-900 mb-3">Мақала жариялау талаптары</h2>
+              <p className="text-sm text-slate-600 mb-4">Мақала жіберер алдында төмендегі талаптармен міндетті түрде танысыңыз.</p>
               <div className="rounded-xl overflow-hidden border border-slate-300">
-                <iframe
-                  src="/zharyalau-talaptary.pdf"
-                  className="w-full h-[500px]"
-                  title="Мақала жариялау талаптары"
-                />
+                <iframe src="/zharyalau-talaptary.pdf" className="w-full h-[500px]" title="Мақала жариялау талаптары" />
               </div>
-              
-                <a href="/zharyalau-talaptary.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3">
+              <a href="/zharyalau-talaptary.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3">
                 PDF-ті жаңа терезеде ашу &rarr;
               </a>
             </div>
 
             <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                type="checkbox"
-                checked={isContest}
-                onChange={e => setIsContest(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
-                />
-                <span className="text-lg font-semibold text-slate-900">
-                  Izden Maqala байқауына қатысу
-                </span>
+                <input type="checkbox" checked={isContest} onChange={e => setIsContest(e.target.checked)} className="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500" />
+                <span className="text-lg font-semibold text-slate-900">Izden Maqala байқауына қатысу</span>
               </label>
-              
               {isContest && (
                 <div className="mt-4">
-                  <p className="text-sm text-slate-600 mb-4">
-                    Конкурсқа қатысу үшін төмендегі ережемен міндетті түрде танысыңыз.
-                  </p>
+                  <p className="text-sm text-slate-600 mb-4">Конкурсқа қатысу үшін төмендегі ережемен міндетті түрде танысыңыз.</p>
                   <div className="rounded-xl overflow-hidden border border-slate-300">
-                    <iframe
-                    src="/izden-maqala-talap.pdf"
-                    className="w-full h-[500px]"
-                    title="Izden Maqala байқау ережесі"
-                    />
-                    </div>
-                    
-                    <a href="/izden-maqala-talap.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3"
-                    >
-                      PDF-ті жаңа терезеде ашу →
-                    </a>
-                    </div>
-                  )}
+                    <iframe src="/izden-maqala-talap.pdf" className="w-full h-[500px]" title="Izden Maqala байқау ережесі" />
                   </div>
+                  <a href="/izden-maqala-talap.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3">
+                    PDF-ті жаңа терезеде ашу →
+                  </a>
+                </div>
+              )}
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Тақырып</label>
-                <input
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-amber-500 outline-none"
-                  placeholder="Мақаланың тақырыбын жазыңыз"
-                  required
-                />
+                <input value={title} onChange={e => setTitle(e.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-amber-500 outline-none" placeholder="Мақаланың тақырыбын жазыңыз" />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Қысқаша кіріспе</label>
-                <textarea
-                  value={overview}
-                  onChange={e => setOverview(e.target.value)}
-                  rows={4}
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-amber-500 outline-none"
-                  placeholder="Мақаланың қысқаша мазмұнын жазыңыз"
-                  required
-                />
+                <textarea value={overview} onChange={e => setOverview(e.target.value)} rows={4} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-amber-500 outline-none" placeholder="Мақаланың қысқаша мазмұнын жазыңыз" />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Толық мәтін</label>
-                <textarea
-                  value={content}
-                  onChange={e => setContent(e.target.value)}
-                  rows={12}
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-amber-500 outline-none"
-                  placeholder="Толық мақаланы осы жерде жазыңыз"
-                  required
-                />
+                <RichTextEditor value={content} onChange={setContent} placeholder="Толық мақаланы осы жерде жазыңыз" />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Санат</label>
-                <select
-                  value={category}
-                  onChange={e => setCategory(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-amber-500 outline-none"
-                >
+                <select value={category} onChange={e => setCategory(e.target.value)} className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 focus:border-amber-500 outline-none">
                   {Object.entries(ARTICLE_CATEGORIES).map(([key, label]) => (
                     <option key={key} value={key}>{label}</option>
                   ))}
@@ -218,16 +211,17 @@ export default function SubmitPage() {
               )}
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-900 px-6 py-3 rounded-2xl font-semibold transition"
-                >
-                  {loading ? "Жіберілуде..." : "Жіберу"}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <button type="button" onClick={() => submitArticle("draft")} disabled={loading} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-2xl font-semibold transition disabled:opacity-50">
+                    Драфт ретінде сақтау
+                  </button>
+                  <button type="button" onClick={() => submitArticle("submit")} disabled={loading} className="bg-amber-500 hover:bg-amber-600 text-slate-900 px-6 py-3 rounded-2xl font-semibold transition disabled:opacity-50">
+                    {loading ? "Жіберілуде..." : "Тексеруге жіберу"}
+                  </button>
+                </div>
                 <p className="text-sm text-slate-500">Мақала {REQUIRED_ADMIN_APPROVALS} әкімші тарапынан мақұлдануы тиіс.</p>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>

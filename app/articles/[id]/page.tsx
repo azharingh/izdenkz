@@ -184,10 +184,11 @@ export default function ArticlePage() {
             )}
             <span>{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
           </div>
-
-          <div className="prose max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap mt-6">
-            {article.content}
-          </div>
+          
+          <div
+          className="prose max-w-none text-slate-700 leading-relaxed mt-6"
+          dangerouslySetInnerHTML={{ __html: article.content }}
+          />
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
