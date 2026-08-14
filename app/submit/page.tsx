@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Navbar from "@/components/Navbar"
 import RichTextEditor from "@/components/RichTextEditor"
@@ -8,6 +8,19 @@ import { ARTICLE_CATEGORIES } from "@/lib/categories"
 import { REQUIRED_ADMIN_APPROVALS } from "@/lib/adminConfig"
 
 export default function SubmitPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50">
+        <Navbar />
+        <p className="text-center text-slate-500 py-40">Жүктелуде...</p>
+      </div>
+    }>
+      <SubmitPageContent />
+    </Suspense>
+  )
+}
+
+function SubmitPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editId = searchParams.get("edit")
