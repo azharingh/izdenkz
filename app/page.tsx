@@ -76,11 +76,11 @@ export default async function HomePage() {
             {/* inline stats, part of hero not a separate boxy band */}
             <div className="flex flex-wrap gap-x-10 gap-y-4 mt-16 pt-8 border-t border-slate-700/60">
               <div>
-                <p className="font-heading text-2xl text-amber-400 font-bold">{stats.articles}</p>
+                <p className="font-heading text-2xl text-amber-400 font-bold">10+</p>
                 <p className="text-slate-500 text-sm mt-0.5">жарияланған мақала</p>
               </div>
               <div>
-                <p className="font-heading text-2xl text-amber-400 font-bold">{stats.authors}</p>
+                <p className="font-heading text-2xl text-amber-400 font-bold">30+</p>
                 <p className="text-slate-500 text-sm mt-0.5">автор</p>
               </div>
               <div>
