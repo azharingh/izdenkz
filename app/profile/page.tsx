@@ -46,7 +46,7 @@ export default function ProfilePage() {
   const [totalLikes, setTotalLikes] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'articles' | 'comments'>('articles')
+  const [activeTab, setActiveTab] = useState<'articles' | 'drafts' | 'comments'>('articles')
 
   const [avatarPreview, setAvatarPreview] = useState('')
   const [avatarUrlInput, setAvatarUrlInput] = useState('')
@@ -258,6 +258,8 @@ export default function ProfilePage() {
 
   const published = articles.filter(a => a.status === 'APPROVED')
   const pending = articles.filter(a => a.status === 'CHECKING')
+  const drafts = articles.filter(a => a.status === 'DRAFT')
+  const nonDraftArticles = articles.filter(a => a.status !== 'DRAFT')
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -440,16 +442,26 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="flex border-b border-slate-200">
             <button
-              onClick={() => setActiveTab('articles')}
-              className={`flex-1 px-4 py-3.5 text-sm font-semibold transition relative ${
-                activeTab === 'articles' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
+             onClick={() => setActiveTab('articles')}
+             className={`flex-1 px-4 py-3.5 text-sm font-semibold transition relative ${
+              activeTab === 'articles' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
               }`}
-            >
-              Мақалалар ({articles.length})
-              {activeTab === 'articles' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />}
+              >
+                Мақалалар ({nonDraftArticles.length})
+                {activeTab === 'articles' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />}
             </button>
             <button
-              onClick={() => setActiveTab('comments')}
+            onClick={() => setActiveTab('drafts')}
+            className={`flex-1 px-4 py-3.5 text-sm font-semibold transition relative ${
+              activeTab === 'drafts' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
+              }`}
+              >
+                Драфт ({drafts.length})
+                {activeTab === 'drafts' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />}
+            </button>
+            
+            <button
+            onClick={() => setActiveTab('comments')}
               className={`flex-1 px-4 py-3.5 text-sm font-semibold transition relative ${
                 activeTab === 'comments' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
               }`}
@@ -462,26 +474,49 @@ export default function ProfilePage() {
           <div className="p-5 sm:p-6">
             {activeTab === 'articles' ? (
               <>
-                <div className="flex justify-end mb-3">
-                  <Link href="/submit" className="text-sm text-amber-600 hover:text-amber-700 font-medium">+ Жаңа мақала</Link>
+              <div className="flex justify-end mb-3">
+                <Link href="/submit" className="text-sm text-amber-600 hover:text-amber-700 font-medium">+ Жаңа мақала</Link>
                 </div>
-                {articles.length === 0 ? (
+                {nonDraftArticles.length === 0 ? (
                   <p className="text-slate-500 text-sm text-center py-8">Әзірге мақала жоқ.</p>
                 ) : (
-                  <div className="space-y-2">
-                    {articles.map(a => (
-                      <div key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
-                        <Link href={a.status === 'DRAFT' ? `/submit?edit=${a.id}` : `/articles/${a.id}`} className="min-w-0 flex-1">
-                        <p className="font-medium text-slate-900 break-words">{a.title}</p>
-                        <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
-                        </Link>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium self-start sm:self-auto shrink-0 ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
+                <div className="space-y-2">
+                  {nonDraftArticles.map(a => (
+                    <div key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                      <Link href={`/articles/${a.id}`} className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-900 break-words">{a.title}</p>
+                      <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
+                </Link>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium self-start sm:self-auto shrink-0 ${STATUS_STYLES[a.status]}`}>{STATUS_LABELS[a.status]}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        </>
+        ) : activeTab === 'drafts' ? (
+        <>
+        <div className="flex justify-end mb-3">
+          <Link href="/submit" className="text-sm text-amber-600 hover:text-amber-700 font-medium">+ Жаңа драфт</Link>
+        </div>
+        {drafts.length === 0 ? (
+          <p className="text-slate-500 text-sm text-center py-8">Әзірге драфт жоқ.</p>
+        ) : (
+        <div className="space-y-2">
+          {drafts.map(a => (
+            <Link href={`/submit?edit=${a.id}`} key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-slate-900 break-words">{a.title || 'Атаусыз драфт'}</p>
+                <p className="text-xs text-slate-500">{ARTICLE_CATEGORIES[a.category as keyof typeof ARTICLE_CATEGORIES] || a.category} · {new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
+              </div>
+              <span className="text-xs px-2 py-1 rounded-full font-medium bg-slate-200 text-slate-600 self-start sm:self-auto shrink-0">
+                Өңдеу →
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </>
+  ) : (
               comments.length === 0 ? (
                 <p className="text-slate-500 text-sm text-center py-8">Әзірге пікір жоқ.</p>
               ) : (
