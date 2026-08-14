@@ -81,12 +81,10 @@ export default function ProfilePage() {
   }, [])
 
   async function loadData(userId: string) {
-    const { data: arts } = await supabase
-      .from('articles')
-      .select('*')
-      .eq('author_id', userId)
-      .order('created_at', { ascending: false })
-    setArticles(arts || [])
+    const artsRes = await fetch(`/api/articles/mine?authorId=${encodeURIComponent(userId)}`)
+      .then(r => r.json())
+      .catch(() => ({ articles: [] }))
+    setArticles(artsRes?.articles || [])
 
     const cmtsRes = await fetch(`/api/comments?authorId=${encodeURIComponent(userId)}`)
       .then(r => r.json())
