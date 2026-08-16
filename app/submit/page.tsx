@@ -174,24 +174,6 @@ function SubmitPageContent() {
               </a>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={isContest} onChange={e => setIsContest(e.target.checked)} className="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500" />
-                <span className="text-lg font-semibold text-slate-900">Izden Maqala байқауына қатысу</span>
-              </label>
-              {isContest && (
-                <div className="mt-4">
-                  <p className="text-sm text-slate-600 mb-4">Конкурсқа қатысу үшін төмендегі ережемен міндетті түрде танысыңыз.</p>
-                  <div className="rounded-xl overflow-hidden border border-slate-300">
-                    <iframe src="/izden-maqala-talap.pdf" className="w-full h-[500px]" title="Izden Maqala байқау ережесі" />
-                  </div>
-                  <a href="/izden-maqala-talap.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium mt-3">
-                    PDF-ті жаңа терезеде ашу →
-                  </a>
-                </div>
-              )}
-            </div>
-
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Тақырып</label>
