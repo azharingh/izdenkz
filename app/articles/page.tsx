@@ -109,6 +109,11 @@ export default function ArticlesPage() {
                         Izden Maqala
                       </span>
                     )}
+                    {article.is_winner && (
+                      <span className="text-xs font-semibold text-slate-900 bg-amber-400 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                        🏆 Жеңімпаз
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-heading font-bold text-lg text-slate-900 mb-1.5 line-clamp-2 group-hover:text-amber-600 transition">
                     {article.title}

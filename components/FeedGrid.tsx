@@ -79,6 +79,11 @@ export default function FeedGrid({ articles }: { articles: any[] }) {
                     Izden Maqala
                   </span>
                 )}
+                {article.is_winner && (
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-900 bg-amber-400 px-3 py-1 rounded-full inline-flex items-center gap-1">
+                    🏆 Жеңімпаз
+                    </span>
+                  )}
                 <span className="text-xs text-slate-400 ml-auto">{relativeTime(article.created_at)}</span>
               </div>
 
