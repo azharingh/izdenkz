@@ -6,7 +6,6 @@ import Navbar from "@/components/Navbar"
 import RichTextEditor from "@/components/RichTextEditor"
 import { ARTICLE_CATEGORIES } from "@/lib/categories"
 import { REQUIRED_ADMIN_APPROVALS } from "@/lib/adminConfig"
-
 export default function SubmitPage() {
   return (
     <Suspense fallback={
@@ -35,6 +34,10 @@ function SubmitPageContent() {
   const [submitDate, setSubmitDate] = useState("")
   const [isContest, setIsContest] = useState(false)
   const [loadingDraft, setLoadingDraft] = useState(!!editId)
+  const [coAuthors, setCoAuthors] = useState<{ id: string; name: string }[]>([])
+  const [coAuthorQuery, setCoAuthorQuery] = useState("")
+  const [coAuthorSearching, setCoAuthorSearching] = useState(false)
+  const [coAuthorError, setCoAuthorError] = useState("")
 
   useEffect(() => {
     setSubmitDate(new Date().toLocaleDateString("kk-KZ"))
@@ -104,6 +107,8 @@ function SubmitPageContent() {
             authorName: user.name,
             isContest,
             isDraft: mode === "draft",
+            coAuthorIds: coAuthors.map(c => c.id),
+            coAuthorNames: coAuthors.map(c => c.name),
           }),
         })
       }
@@ -127,6 +132,39 @@ function SubmitPageContent() {
       setLoading(false)
       setMessage({ type: "error", text: "Желі қатесі." })
     }
+  }
+
+  async function addCoAuthor() {
+    const q = coAuthorQuery.trim()
+    if (!q) return
+    setCoAuthorError("")
+    setCoAuthorSearching(true)
+    try {
+      const res = await fetch(`/api/users/search?query=${encodeURIComponent(q)}`)
+      const json = await res.json()
+      if (!res.ok) {
+        setCoAuthorError(json.error || "Табылмады.")
+        return
+      }
+      if (json.user.id === user?.id) {
+        setCoAuthorError("Өзіңізді қоса алмайсыз.")
+        return
+      }
+      if (coAuthors.some(c => c.id === json.user.id)) {
+        setCoAuthorError("Бұл автор қосылған.")
+        return
+      }
+      setCoAuthors(prev => [...prev, { id: json.user.id, name: json.user.name }])
+      setCoAuthorQuery("")
+    } catch {
+      setCoAuthorError("Желі қатесі.")
+    } finally {
+      setCoAuthorSearching(false)
+    }
+  }
+
+  function removeCoAuthor(id: string) {
+    setCoAuthors(prev => prev.filter(c => c.id !== id))
   }
 
   if (loadingDraft) {
@@ -197,6 +235,39 @@ function SubmitPageContent() {
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Тең авторлар (міндетті емес)</label>
+                <p className="text-xs text-slate-500 mb-3">Co-автордың email немесе пайдаланушы атын енгізіңіз.</p>
+                <div className="flex gap-2 mb-3">
+                  <input
+                  value={coAuthorQuery}
+                  onChange={e => setCoAuthorQuery(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addCoAuthor())}
+                  placeholder="email@example.com немесе username"
+                  className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-amber-500 outline-none"
+                  />
+                  <button
+                  type="button"
+                  onClick={addCoAuthor}
+                  disabled={coAuthorSearching}
+                  className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50"
+                  >
+                    {coAuthorSearching ? "..." : "Қосу"}
+                    </button>
+                </div>
+                {coAuthorError && <p className="text-xs text-rose-600 mb-3">{coAuthorError}</p>}
+                {coAuthors.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {coAuthors.map(c => (
+                      <span key={c.id} className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-sm px-3 py-1.5 rounded-full">
+                        {c.name}
+                        <button type="button" onClick={() => removeCoAuthor(c.id)} className="text-amber-500 hover:text-amber-700 font-bold">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {message && (

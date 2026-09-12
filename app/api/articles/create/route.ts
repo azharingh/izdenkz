@@ -11,7 +11,7 @@ function sanitize(html: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const { title, overview, content, category, authorId, isContest, isDraft } = await req.json()
+  const { title, overview, content, category, authorId, isContest, isDraft, coAuthorIds, coAuthorNames } = await req.json()
 
   if (!title || !overview || !content || !authorId) {
     return NextResponse.json({ error: "Барлық өрістер қажет." }, { status: 400 })
@@ -42,6 +42,8 @@ export async function POST(req: NextRequest) {
         author_name: authorUser.name,
         status: REVIEW_STATUSES.DRAFT,
         is_contest: !!isContest,
+        co_author_ids: coAuthorIds || [],
+        co_author_names: coAuthorNames || [],
       })
       .select()
       .single()
@@ -85,6 +87,8 @@ export async function POST(req: NextRequest) {
       author_name: authorUser.name,
       status: REVIEW_STATUSES.CHECKING,
       is_contest: !!isContest,
+      co_author_ids: coAuthorIds || [],
+      co_author_names: coAuthorNames || [],
     })
     .select()
     .single()

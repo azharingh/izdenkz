@@ -180,13 +180,20 @@ export default function ArticlePage() {
           <h1 className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-3">
             {article.title}
           </h1>
-          <div className="flex items-center gap-4 text-sm text-slate-500 pb-6 border-b border-slate-200">
+
+          <div className="flex items-center flex-wrap gap-2 text-sm text-slate-500 pb-6 border-b border-slate-200">
             <Link href={`/user/${article.author_id}`} className="font-medium text-slate-700 hover:text-amber-600 transition">
             {article.author_name}
             </Link>
-            {article.author_email && (
-              <span className="text-slate-400">{article.author_email}</span>
-            )}
+            {article.co_author_ids?.map((id: string, i: number) => (
+              <span key={id} className="flex items-center gap-2">
+                <span className="text-slate-300">·</span>
+                <Link href={`/user/${id}`} className="font-medium text-slate-700 hover:text-amber-600 transition">
+                {article.co_author_names?.[i] ?? "Автор"}
+                </Link>
+              </span>
+            ))}
+            <span className="text-slate-300">·</span>
             <span>{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
           </div>
           

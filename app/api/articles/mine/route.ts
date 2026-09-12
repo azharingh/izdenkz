@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabaseAdmin
     .from("articles")
     .select("*")
-    .eq("author_id", authorId)
+    .or(`author_id.eq.${authorId},co_author_ids.cs.{${authorId}}`)
     .order("created_at", { ascending: false })
 
   if (error) {
