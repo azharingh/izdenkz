@@ -314,6 +314,7 @@ export default function AuthPage() {
               <Link href="/" className="text-amber-600 hover:text-amber-700">← Басты бетке оралу</Link>
             </p>
           </div>
+
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200"></div>
@@ -321,6 +322,8 @@ export default function AuthPage() {
             <div className="relative flex justify-center text-xs">
               <span className="bg-white px-3 text-slate-400">немесе</span>
             </div>
+          </div>
+          
           <button
           type="button"
           onClick={handleGoogleLogin}
@@ -335,7 +338,8 @@ export default function AuthPage() {
             Google арқылы кіру
           </button>
           
-          </div>
+
+          
         </div>
       </div>
     </div>
