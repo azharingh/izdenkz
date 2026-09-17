@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase"
 import Navbar from "@/components/Navbar"
 import { ARTICLE_FILTER_CATEGORIES } from "@/lib/categories"
 import { useRouter } from "next/navigation"
+import { calculateReadingTime } from "@/lib/readingTime"
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<any[]>([])
@@ -121,13 +122,13 @@ export default function ArticlesPage() {
                   <p className="text-slate-600 text-sm line-clamp-2 mb-4">{article.overview}</p>
                   <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
                     <Link
-                      href={`/user/${article.author_id}`}
-                      onClick={e => e.stopPropagation()}
-                      className="hover:text-amber-600 transition font-medium relative z-10"
+                    href={`/user/${article.author_id}`}
+                    onClick={e => e.stopPropagation()}
+                    className="hover:text-amber-600 transition font-medium relative z-10"
                     >
                       {article.author_name}
                     </Link>
-                    <span>{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
+                    <span>{calculateReadingTime(article.content)} мин · {new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
                   </div>
                 </div>
               </div>

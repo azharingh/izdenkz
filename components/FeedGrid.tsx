@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ARTICLE_CATEGORIES } from "@/lib/categories"
+import { calculateReadingTime } from "@/lib/readingTime"
 
 function relativeTime(dateString: string) {
   const date = new Date(dateString)
@@ -84,7 +85,7 @@ export default function FeedGrid({ articles }: { articles: any[] }) {
                     🏆 Жеңімпаз
                     </span>
                   )}
-                <span className="text-xs text-slate-400 ml-auto">{relativeTime(article.created_at)}</span>
+               <span className="text-xs text-slate-400 ml-auto">{calculateReadingTime(article.content)} мин · {relativeTime(article.created_at)}</span>
               </div>
 
               <h2 className={`font-heading font-bold text-slate-900 mb-3 group-hover:text-amber-600 transition leading-snug ${
