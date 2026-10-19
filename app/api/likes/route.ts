@@ -3,48 +3,31 @@ import { supabaseAdmin } from "@/lib/supabaseServer"
 
 export async function GET(req: NextRequest) {
   const articleId = req.nextUrl.searchParams.get("articleId")
+  const authorId = req.nextUrl.searchParams.get("authorId")
   const userId = req.nextUrl.searchParams.get("userId")
-  if (!articleId) return NextResponse.json({ error: "Missing articleId" }, { status: 400 })
-
-  const countPromise = supabaseAdmin
-    .from("likes")
-    .select("*", { count: "exact", head: true })
-    .eq("article_id", articleId)
-
-  const likedPromise = userId
-    ? supabaseAdmin
-        .from("likes")
-        .select("*")
-        .eq("article_id", articleId)
-        .eq("user_id", userId)
-        .maybeSingle()
-    : null
-
-  const [{ count }, likedResult] = await Promise.all([countPromise, likedPromise])
-
-  return NextResponse.json({ count: count || 0, liked: !!likedResult?.data })
-}
 
   if (articleId) {
-    const { count, error: countError } = await supabaseAdmin
+    const countPromise = supabaseAdmin
       .from("likes")
       .select("*", { count: "exact", head: true })
       .eq("article_id", articleId)
 
+    const likedPromise = userId
+      ? supabaseAdmin
+          .from("likes")
+          .select("*")
+          .eq("article_id", articleId)
+          .eq("user_id", userId)
+          .maybeSingle()
+      : Promise.resolve({ data: null })
+
+    const [{ count, error: countError }, likedResult] = await Promise.all([
+      countPromise,
+      likedPromise,
+    ])
+
     if (countError) return NextResponse.json({ error: countError.message }, { status: 500 })
-
-    let liked = false
-    if (userId) {
-      const { data } = await supabaseAdmin
-        .from("likes")
-        .select("id")
-        .eq("article_id", articleId)
-        .eq("user_id", userId)
-        .maybeSingle()
-      liked = !!data
-    }
-
-    return NextResponse.json({ count: count || 0, liked })
+    return NextResponse.json({ count: count || 0, liked: !!likedResult?.data })
   }
 
   if (authorId) {
