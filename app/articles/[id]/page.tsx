@@ -21,6 +21,8 @@ export default function ArticlePage() {
   const [accessDenied, setAccessDenied] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [submittingComment, setSubmittingComment] = useState(false)
+  const [likeBusy, setLikeBusy] = useState(false)
+  const [likesLoaded, setLikesLoaded] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -67,25 +69,34 @@ export default function ArticlePage() {
   }
 
   async function loadLikes(userId?: string) {
-    if (!id) return
-    try {
-      const params = new URLSearchParams({ articleId: id })
-      if (userId) params.set("userId", userId)
-      const res = await fetch(`/api/likes?${params}`)
-      const json = await res.json()
-      if (res.ok) {
-        setLikesCount(json.count || 0)
-        setLiked(!!json.liked)
-      }
-    } catch {
-      // keep existing likes on transient errors
+  if (!id) return
+  try {
+    const params = new URLSearchParams({ articleId: id })
+    if (userId) params.set("userId", userId)
+    const res = await fetch(`/api/likes?${params}`)
+    const json = await res.json()
+    if (res.ok) {
+      setLikesCount(json.count || 0)
+      setLiked(!!json.liked)
     }
+  } catch {
+    // keep existing likes on transient errors
+  } finally {
+    setLikesLoaded(true)
   }
+}
 
   async function toggleLike() {
-    if (!user || !id) return router.push("/auth")
-    setActionError(null)
+  if (!user || !id) return router.push("/auth")
+  if (likeBusy) return
+  setActionError(null)
+  setLikeBusy(true)
 
+  const wasLiked = liked
+  setLiked(!wasLiked)
+  setLikesCount(c => (wasLiked ? Math.max(0, c - 1) : c + 1))
+
+  try {
     const res = await fetch("/api/likes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -94,13 +105,18 @@ export default function ArticlePage() {
     const json = await res.json()
 
     if (!res.ok) {
+      setLiked(wasLiked)
+      setLikesCount(c => (wasLiked ? c + 1 : Math.max(0, c - 1)))
       setActionError(json.error || "Лайк қою мүмкін болмады.")
-      return
     }
-
-    setLiked(json.liked)
-    setLikesCount(c => (json.liked ? c + 1 : Math.max(0, c - 1)))
+  } catch {
+    setLiked(wasLiked)
+    setLikesCount(c => (wasLiked ? c + 1 : Math.max(0, c - 1)))
+    setActionError("Желі қатесі. Қайта көріңіз.")
+  } finally {
+    setLikeBusy(false)
   }
+}
 
   async function addComment() {
     if (!user || !commentText.trim() || !id) return
@@ -222,7 +238,7 @@ export default function ArticlePage() {
                   : "border-slate-300 text-slate-600 hover:border-rose-200 hover:text-rose-600"
               }`}
             >
-              {liked ? "❤️" : "🤍"} {likesCount}
+             {liked ? "❤️" : "🤍"} {likesLoaded ? likesCount : "–"}
             </button>
             <span className="text-slate-500 text-sm">💬 {comments.length} пікір</span>
           </div>

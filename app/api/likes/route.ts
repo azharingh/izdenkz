@@ -4,7 +4,26 @@ import { supabaseAdmin } from "@/lib/supabaseServer"
 export async function GET(req: NextRequest) {
   const articleId = req.nextUrl.searchParams.get("articleId")
   const userId = req.nextUrl.searchParams.get("userId")
-  const authorId = req.nextUrl.searchParams.get("authorId")
+  if (!articleId) return NextResponse.json({ error: "Missing articleId" }, { status: 400 })
+
+  const countPromise = supabaseAdmin
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("article_id", articleId)
+
+  const likedPromise = userId
+    ? supabaseAdmin
+        .from("likes")
+        .select("*")
+        .eq("article_id", articleId)
+        .eq("user_id", userId)
+        .maybeSingle()
+    : null
+
+  const [{ count }, likedResult] = await Promise.all([countPromise, likedPromise])
+
+  return NextResponse.json({ count: count || 0, liked: !!likedResult?.data })
+}
 
   if (articleId) {
     const { count, error: countError } = await supabaseAdmin
