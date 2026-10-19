@@ -203,6 +203,10 @@ export default async function HomePage() {
 
           <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-slate-500 text-sm">© 2026 Izden. Барлық құқықтар қорғалған.</p>
+            <div className="flex gap-6 text-sm">
+              <Link href="/terms" className="text-slate-500 hover:text-amber-400 transition">Қолданушы келісімі</Link>
+              <Link href="/privacy" className="text-slate-500 hover:text-amber-400 transition">Құпиялылық саясаты</Link>
+            </div>
           </div>
         </div>
       </footer>

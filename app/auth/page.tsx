@@ -29,6 +29,7 @@ export default function AuthPage() {
   const [username, setUsername] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [region, setRegion] = useState("")
+  const [acceptTerms, setAcceptTerms] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -75,6 +76,10 @@ export default function AuthPage() {
     }
     if (password !== confirmPassword) {
       setError("Құпиясөздер сәйкес келмейді.")
+      return
+    }
+     if (!acceptTerms) {
+      setError("Қолданушы келісімі мен Құпиялылық саясатын қабылдау қажет.")
       return
     }
     setLoading(true)
@@ -180,6 +185,13 @@ export default function AuthPage() {
               </svg>
               Google арқылы жалғастыру
             </button>
+            <p className="text-xs text-slate-400 text-center mt-3">
+              Жалғастыру арқылы сіз{" "}
+              <Link href="/terms" className="underline hover:text-amber-600">Қолданушы келісімін</Link>
+              {" "}және{" "}
+              <Link href="/privacy" className="underline hover:text-amber-600">Құпиялылық саясатын</Link>
+              {" "}қабылдайсыз.
+            </p>
 
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
@@ -225,6 +237,21 @@ export default function AuthPage() {
                     required
                   />
                 </div>
+                <label className="flex items-start gap-3 text-sm text-slate-600 cursor-pointer">
+                  <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={e => setAcceptTerms(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                  />
+                  <span>
+                    Мен{" "}
+                    <Link href="/terms" target="_blank" className="text-amber-600 hover:text-amber-700 underline">Қолданушы келісімімен</Link>
+                    {" "}және{" "}
+                    <Link href="/privacy" target="_blank" className="text-amber-600 hover:text-amber-700 underline">Құпиялылық саясатымен</Link>
+                    {" "}таныстым және келісемін
+                  </span>
+                </label>
                 <button
                   type="submit"
                   disabled={loading}
