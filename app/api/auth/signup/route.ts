@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   // 5. Send Welcome Email via Resend (After user is successfully created)
   try {
     await resend.emails.send({
-      from: "Izden <no-reply@izden.men>",
+      from: "Izden <izdenkz@gmail.com>",
       to: [normalizedEmail],
       subject: "Izden платформасына қош келдіңіз! 🚀",
       template: {
