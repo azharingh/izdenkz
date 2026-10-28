@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { supabaseAdmin } from "@/lib/supabaseServer"
 import { signupPayload, toClientUser } from "@/lib/userDb"
+import { Resend } from "resend"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -72,6 +75,23 @@ export async function POST(req: NextRequest) {
 
   if (error || !data) {
     return NextResponse.json({ error: error?.message || "Тіркелу мүмкін болмады." }, { status: 500 })
+  }
+
+  // 5. Send Welcome Email via Resend (After user is successfully created)
+  try {
+    await resend.emails.send({
+      from: "Izden <no-reply@izden.men>",
+      to: [normalizedEmail],
+      subject: "Izden платформасына қош келдіңіз! 🚀",
+      template: {
+        id: "welcome-email", // Replace with your exact Resend Template Slug/ID
+        variables: {
+          userName: firstName || "Оқырман",
+        },
+      },
+    })
+  } catch (emailErr) {
+    console.error("Welcome email error:", emailErr)
   }
 
   return NextResponse.json({ user: toClientUser(data) })
