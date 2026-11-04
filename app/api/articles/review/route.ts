@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabaseServer"
 import { ADMIN_REVIEWER_EMAILS, REQUIRED_ADMIN_APPROVALS, REVIEW_STATUSES } from "@/lib/adminConfig"
+import { sendArticleOutcomeEmail } from "@/lib/email"
 
 export async function PATCH(req: NextRequest) {
   const { articleId, adminId, decision } = await req.json()
@@ -64,6 +65,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   let finalArticle = article
+  let outcome: "APPROVED" | "DECLINED" | null = null
 
   if (decision === REVIEW_STATUSES.DECLINED) {
     const { data: declinedArticle, error: declineError } = await supabaseAdmin
@@ -78,6 +80,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     finalArticle = declinedArticle
+    outcome = "DECLINED"
   } else {
     const { data: approvals, error: approvalsError } = await supabaseAdmin
       .from("article_approvals")
@@ -103,8 +106,12 @@ export async function PATCH(req: NextRequest) {
       }
 
       finalArticle = approvedArticle
+      outcome = "APPROVED"
     }
   }
 
+    if (outcome) {
+    await sendArticleOutcomeEmail(finalArticle, outcome)
+  }
   return NextResponse.json({ article: finalArticle, approval: updatedApproval })
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabaseServer"
 import { toClientUser } from "@/lib/userDb"
+import { sendWelcomeEmail } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
   const { email, name, avatarUrl } = await req.json()
@@ -47,5 +48,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: createError?.message || "Аккаунт жасалмады." }, { status: 500 })
   }
 
+  await sendWelcomeEmail(created.email, created.name)
   return NextResponse.json({ user: toClientUser(created) })
 }
