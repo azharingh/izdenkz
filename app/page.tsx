@@ -15,7 +15,7 @@ export default async function HomePage() {
   if (error) console.error("Homepage articles error:", error)
 
   const articles = data || []
-  const latest = articles.slice(0, 6)
+  const latest = articles.slice(0, 3)
 
   const stats = {
     articles: articles.length,
