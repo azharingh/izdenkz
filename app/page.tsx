@@ -3,18 +3,23 @@ import Navbar from "@/components/Navbar"
 import { supabase } from "@/lib/supabase"
 import { calculateReadingTime } from "@/lib/readingTime"
 
+export const dynamic = "force-dynamic"
+
 export default async function HomePage() {
-  const { data: articles } = await supabase
+  const { data, error } = await supabase
     .from("articles")
-    .select("*, author(name)")
+    .select("*")
     .eq("status", "APPROVED")
     .order("created_at", { ascending: false })
 
-  const popular = articles?.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0)).slice(0, 3) || []
+  if (error) console.error("Homepage articles error:", error)
+
+  const articles = data || []
+  const latest = articles.slice(0, 6)
 
   const stats = {
-    articles: articles?.length || 0,
-    authors: new Set(articles?.map(a => a.author_id)).size || 0,
+    articles: articles.length,
+    authors: new Set(articles.map(a => a.author_id)).size,
   }
 
   const principles = [
@@ -127,15 +132,15 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
-              <p className="text-amber-600 text-xs font-semibold tracking-[0.3em] uppercase mb-2">Оқырман таңдауы</p>
-              <h2 className="font-heading text-3xl font-bold text-slate-900">Танымал мақалалар</h2>
+              <p className="text-amber-600 text-xs font-semibold tracking-[0.3em] uppercase mb-2">Жаңа мақалалар</p>
+              <h2 className="font-heading text-3xl font-bold text-slate-900">Соңғы мақалалар</h2>
             </div>
             <Link href="/articles" className="text-slate-600 hover:text-amber-600 text-sm font-medium transition inline-flex items-center gap-1">
               Барлығын көру →
             </Link>
           </div>
 
-          {popular.length === 0 ? (
+          {latest.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dashed border-slate-300 py-16 text-center">
               <p className="text-slate-500">Әзірге мақалалар жоқ. Бірінші болып жазыңыз!</p>
               <Link href="/submit" className="inline-block mt-4 text-amber-600 hover:text-amber-700 font-medium">
@@ -144,7 +149,7 @@ export default async function HomePage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
-              {popular.map(article => (
+              {latest.map(article => (
                 <Link href={`/articles/${article.id}`} key={article.id} className="group block">
                   <div className="relative bg-white rounded-xl border border-slate-200 p-6 h-full overflow-hidden transition-all group-hover:border-amber-300 group-hover:shadow-lg group-hover:-translate-y-0.5">
                     <span className="absolute left-0 top-0 bottom-0 w-0 bg-amber-500 transition-all duration-300 group-hover:w-1" />
