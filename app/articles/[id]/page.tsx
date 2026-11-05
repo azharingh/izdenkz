@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import Navbar from "@/components/Navbar"
 import { ARTICLE_CATEGORIES } from "@/lib/categories"
-import { calculateReadingTime } from "@/lib/readingTime"
+import { countWords, calculateReadingTime } from "@/lib/readingTime"
 
 export default function ArticlePage() {
   const params = useParams()
@@ -213,7 +213,7 @@ export default function ArticlePage() {
               <span className="text-slate-300">·</span>
               <span>{new Date(article.created_at).toLocaleDateString("kk-KZ")}</span>
               <span className="text-slate-300">·</span>
-              <span>{calculateReadingTime(article.content)} мин оқу</span>
+              <span>{countWords(article.content)} сөз · {calculateReadingTime(article.content)} мин оқу</span>
           </div>
           
           <div

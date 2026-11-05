@@ -1,8 +1,14 @@
+export function countWords(html: string): number {
+  if (!html) return 0
+  const text = html
+    .replace(/<(?:br|\/?p|\/?div)[^>]*>/gi, " ") 
+    .replace(/<[^>]*>/g, "")                      
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;|&gt;/gi, " ")
+  return text.trim().split(/\s+/).filter(Boolean).length
+}
+
 export function calculateReadingTime(html: string): number {
-  if (!html) return 1
-  const text = html.replace(/<[^>]*>/g, " ")
-  const words = text.trim().split(/\s+/).filter(Boolean).length
-  const wordsPerMinute = 180
-  const minutes = Math.ceil(words / wordsPerMinute)
-  return Math.max(1, minutes)
+  return Math.max(1, Math.ceil(countWords(html) / 180))
 }

@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Navbar from "@/components/Navbar"
 import { supabase } from "@/lib/supabase"
-import { calculateReadingTime } from "@/lib/readingTime"
+import { countWords, calculateReadingTime } from "@/lib/readingTime"
 
 export const dynamic = "force-dynamic"
 
@@ -154,7 +154,7 @@ export default async function HomePage() {
                   <div className="relative bg-white rounded-xl border border-slate-200 p-6 h-full overflow-hidden transition-all group-hover:border-amber-300 group-hover:shadow-lg group-hover:-translate-y-0.5">
                     <span className="absolute left-0 top-0 bottom-0 w-0 bg-amber-500 transition-all duration-300 group-hover:w-1" />
                     <p className="text-xs text-slate-400 mb-3">
-                      {calculateReadingTime(article.content)} мин оқу · {new Date(article.created_at).toLocaleDateString("kk-KZ")}
+                      {countWords(article.content)} сөз · {calculateReadingTime(article.content)} мин
                     </p>
                     <h3 className="font-heading font-bold text-lg text-slate-900 mb-2 group-hover:text-amber-600 transition-colors">
                       {article.title}

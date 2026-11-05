@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar"
 import RichTextEditor from "@/components/RichTextEditor"
 import { ARTICLE_CATEGORIES } from "@/lib/categories"
 import { REQUIRED_ADMIN_APPROVALS } from "@/lib/adminConfig"
+import { countWords, calculateReadingTime } from "@/lib/readingTime"
 export default function SubmitPage() {
   return (
     <Suspense fallback={
@@ -38,6 +39,8 @@ function SubmitPageContent() {
   const [coAuthorQuery, setCoAuthorQuery] = useState("")
   const [coAuthorSearching, setCoAuthorSearching] = useState(false)
   const [coAuthorError, setCoAuthorError] = useState("")
+  const wordCount = countWords(content)
+  
 
   useEffect(() => {
     setSubmitDate(new Date().toLocaleDateString("kk-KZ"))
@@ -168,6 +171,7 @@ function SubmitPageContent() {
   }
 
   if (loadingDraft) {
+      const wordCount = countWords(content)
     return (
       <div className="min-h-screen bg-slate-50">
         <Navbar />
@@ -226,6 +230,16 @@ function SubmitPageContent() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Толық мәтін</label>
                 <RichTextEditor value={content} onChange={setContent} placeholder="Толық мақаланы осы жерде жазыңыз" />
+                <div className="flex items-center justify-between mt-2 text-xs">
+                  <span className="text-slate-500">
+                    {wordCount} сөз{wordCount > 0 && ` · шамамен ${calculateReadingTime(content)} мин оқу`}
+                    </span>
+                    {isContest && (
+                      <span className={wordCount > 800 ? "text-rose-600 font-medium" : "text-slate-500"}>
+                        Байқау лимиті: {wordCount}/800
+                      </span>
+                    )}
+                </div>
               </div>
 
               <div>
