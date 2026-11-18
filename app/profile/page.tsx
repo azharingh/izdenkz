@@ -427,7 +427,7 @@ export default function ProfilePage() {
           ))}
           <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
             <p className="font-heading text-3xl font-bold text-rose-500">{totalLikes}</p>
-            <p className="text-xs text-slate-500 mt-1">Алынған лайктар</p>
+            <p className="text-xs text-slate-500 mt-1">Жиналған лайктар</p>
           </div>
         </div>
       </div>
