@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Izden — Қазақ журналистикасы",
+  title: "Izden",
   description: "Білім іздеу — болашаққа жол",
 }
 
