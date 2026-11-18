@@ -60,7 +60,7 @@ export default async function HomePage() {
             </h1>
             <p className="text-slate-400 text-base md:text-lg mb-1 italic">— Бауыржан Момышұлы</p>
             <p className="text-slate-300 text-lg md:text-xl mt-6 mb-10 leading-relaxed max-w-xl">
-              Izden — қазақ тіліндегі тәуелсіз журналистика платформасы.
+             Izden - Қазақ тіліндегі тәуелсіз журналистика платформасы.
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
