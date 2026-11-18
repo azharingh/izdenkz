@@ -2,6 +2,7 @@ import Link from "next/link"
 import Navbar from "@/components/Navbar"
 import { supabase } from "@/lib/supabase"
 import { countWords, calculateReadingTime } from "@/lib/readingTime"
+import Image from "next/image"
 
 export const dynamic = "force-dynamic"
 
@@ -177,9 +178,7 @@ export default async function HomePage() {
           <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
             <div className="max-w-xs">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
-                  <span className="text-slate-900 font-heading font-bold">І</span>
-                </div>
+                <Image src="/logo.png" alt="Izden" width={32} height={32} className="rounded-lg"/>
                 <span className="text-white font-heading font-bold text-lg">Izden</span>
               </div>
               <p className="text-slate-500 text-sm leading-relaxed">
